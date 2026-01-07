@@ -24,7 +24,7 @@ SECRET_KEY = 'django-insecure-m-2@@h_rilcjn5ggg$6+fbc7r)!o%*#+lmnc2zlq&n)j2g%_7+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*','localhost', '127.0.0.1', 'narxmonitoring.pythonanywhere.com']
+ALLOWED_HOSTS = ['*', 'localhost', '127.0.0.1', 'narxmonitoring.pythonanywhere.com']
 
 # Application definition
 
@@ -39,10 +39,12 @@ INSTALLED_APPS = [
     'inflation_app',
     'nested_admin',
     'rest_framework',
-    'django.contrib.humanize'
+    'django.contrib.humanize',
+    'traffic'
 ]
 
 MIDDLEWARE = [
+    "traffic.middleware.RequestLogMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -77,25 +79,25 @@ WSGI_APPLICATION = 'inflation_project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": "narxmonitoring$default",
-        "USER": "narxmonitoring",
-        "PASSWORD": "inflation_database",
-        "HOST": "narxmonitoring.mysql.pythonanywhere-services.com",
-        "PORT": "3306",
-        "OPTIONS": {
-            "charset": "utf8mb4",
-        },
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.mysql",
+#         "NAME": "narxmonitoring$default",
+#         "USER": "narxmonitoring",
+#         "PASSWORD": "inflation_database",
+#         "HOST": "narxmonitoring.mysql.pythonanywhere-services.com",
+#         "PORT": "3306",
+#         "OPTIONS": {
+#             "charset": "utf8mb4",
+#         },
+#     }
+# }
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 

@@ -1,0 +1,63 @@
+{% extends "admin/change_list.html" %}
+{% load static %}
+
+{% block content %}
+<div style="display:flex; gap:50px; margin-bottom:20px;">
+    <div>
+        <h3>Top Paths</h3>
+        <canvas id="pathsChart" width="400" height="200"></canvas>
+    </div>
+    <div>
+        <h3>Top IPs</h3>
+        <canvas id="ipsChart" width="400" height="200"></canvas>
+    </div>
+    <div>
+        <h3>Top Users</h3>
+        <canvas id="usersChart" width="400" height="200"></canvas>
+    </div>
+</div>
+
+{{ block.super }}  <!-- Table goes here -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const pathsCtx = document.getElementById('pathsChart').getContext('2d');
+const pathsChart = new Chart(pathsCtx, {
+    type: 'bar',
+    data: {
+        labels: [{% for obj in top_paths %}"{{ obj.path }}",{% endfor %}],
+        datasets: [{
+            label: 'Requests',
+            data: [{% for obj in top_paths %}{{ obj.count }},{% endfor %}],
+            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+        }]
+    }
+});
+
+const ipsCtx = document.getElementById('ipsChart').getContext('2d');
+const ipsChart = new Chart(ipsCtx, {
+    type: 'bar',
+    data: {
+        labels: [{% for obj in top_ips %}"{{ obj.ip_address }}",{% endfor %}],
+        datasets: [{
+            label: 'Requests',
+            data: [{% for obj in top_ips %}{{ obj.count }},{% endfor %}],
+            backgroundColor: 'rgba(255, 99, 132, 0.6)',
+        }]
+    }
+});
+
+const usersCtx = document.getElementById('usersChart').getContext('2d');
+const usersChart = new Chart(usersCtx, {
+    type: 'bar',
+    data: {
+        labels: [{% for obj in top_users %}"{{ obj.user__username|default:'Anonymous' }}",{% endfor %}],
+        datasets: [{
+            label: 'Requests',
+            data: [{% for obj in top_users %}{{ obj.count }},{% endfor %}],
+            backgroundColor: 'rgba(75, 192, 192, 0.6)',
+        }]
+    }
+});
+</script>
+{% endblock %}
