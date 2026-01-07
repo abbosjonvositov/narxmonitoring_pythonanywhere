@@ -1,0 +1,743 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block main %}
+<style>
+    .filter-chip {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 6px 10px;
+  border-radius: 20px;
+  background-color: #2c2c2c; /* dark terminal look */
+  color: #f1f1f1;
+}
+
+.filter-chip .filter-label {
+  margin-right: 4px;
+}
+
+.filter-chip .close {
+  font-size: 0.9rem;
+  color: #aaa;
+  opacity: 0.8;
+  padding: 0;
+  margin: 0;
+}
+
+.filter-chip .close:hover {
+  color: #fff;
+  opacity: 1;
+}
+
+</style>
+
+<style>
+    .ticker-wrap {
+        overflow: hidden;
+        width: 100%;
+        height: 130px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        background-color: #121212; /* dark terminal background */
+        cursor: grab;
+    }
+
+    .ticker-wrap:active {
+        cursor: grabbing;
+    }
+
+    .ticker-track {
+        display: flex;
+        width: max-content;
+        will-change: transform;
+        user-select: none;
+        background-color: #1f1f1f; /* unified strip background */
+        border-radius: 6px;
+        border: 1px solid #333;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    }
+
+    .ticker-item {
+        min-width: 170px;
+        max-width: 170px;
+        margin: 0; /* remove spacing between cards */
+        padding: 10px 12px;
+        background-color: transparent; /* let track background show through */
+        border-right: 1px solid rgba(255,255,255,0.08); /* softer divider line */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: #e0e0e0; /* slightly softer white */
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .ticker-item:last-child {
+        border-right: none; /* avoid extra line at end */
+    }
+
+    .ticker-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.6); /* softer shadow */
+    }
+
+    .ticker-item div {
+        margin: 2px 0;
+    }
+
+    .product-name {
+        font-weight: 500;
+        font-size: 0.95rem;
+        color: #bbbbbb; /* softer gray */
+        text-align: center;
+    }
+
+    .product-price {
+        font-weight: 700;
+        font-size: 1.15rem;
+        color: #f0f0f0; /* softer white */
+        text-align: center;
+    }
+
+    .product-change {
+        font-weight: 700;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+    }
+
+    .product-change.positive {
+        color: #4caf50; /* muted green */
+    }
+
+    .product-change.negative {
+        color: #e57373; /* muted red */
+    }
+
+    .product-change.neutral {
+        color: #999999; /* softer neutral gray */
+    }
+</style>
+<!-- TradingView-style Ticker -->
+<div class="ticker-wrap bg-dark text-white">
+    <div id="ticker-track" class="ticker-track"></div>
+</div>
+
+<div id="mainContentWrapper" class="transition-wrapper">
+    <main role="main" class="main-content">
+        <div class="container-fluid">
+            <!-- Date Picker -->
+            <div class="row mb-3">
+                <div class="col-12 text-center">
+                    <div id="dateDropdownContainer" class="d-inline-block mr-3">
+                        <!-- Dropdown will be injected here -->
+                    </div>
+                    <div id="appliedFiltersContainer" class="d-inline-block">
+                        <!-- Applied filters will be injected here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Grid -->
+            <div class="row h-100">
+                <!-- Card 1 -->
+                <div class="col-12 col-md-6 col-lg-4 mb-4 d-flex">
+                    <div class="card flex-fill card-full shadow-sm">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">Viloyatlar va tumanlar kesimida narxlar darajasi</h6>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-secondary"><i class="fas fa-sync-alt"></i></button>
+                                <button class="btn btn-outline-secondary"><i class="fas fa-cog"></i></button>
+                                <button id="fullscreenBtn" class="btn btn-outline-secondary"><i
+                                        class="fas fa-expand"></i></button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div id="map_chart" class="chart-container"></div>
+                        </div>
+                        <div class="card-footer text-muted small">
+                            <span class="footerInfo">Footer info</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="col-12 col-md-6 col-lg-4 mb-4 d-flex">
+                    <div class="card flex-fill card-full shadow-sm">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">Hududlar kesimida narxlar dinamikasi</h6>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-secondary"><i class="fas fa-sync-alt"></i></button>
+                                <button class="btn btn-outline-secondary"><i class="fas fa-cog"></i></button>
+                                <button id="fullscreenBtnRegion" class="btn btn-outline-secondary"><i
+                                        class="fas fa-expand"></i></button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div id="region_chart" class="chart-container"></div>
+                        </div>
+                        <div class="card-footer text-muted small">
+                            <span class="footerInfo">Footer info</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="col-12 col-md-6 col-lg-4 mb-4 d-flex">
+                    <div class="card flex-fill card-full shadow-sm">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">Hududlar kesimida stacked column chart</h6>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-secondary"><i class="fas fa-sync-alt"></i></button>
+                                <button class="btn btn-outline-secondary"><i class="fas fa-cog"></i></button>
+                                <button id="fullscreenBtnStackedColumn" class="btn btn-outline-secondary">
+                                    <i class="fas fa-expand"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <!-- ✅ Container for stacked column chart -->
+                            <div id="stacked_column_chart" class="chart-container"></div>
+                        </div>
+                        <div class="card-footer text-muted small">
+                            <span class="footerInfo">Footer info</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="col-12 col-md-6 col-lg-4 mb-4 d-flex">
+                    <div class="card flex-fill card-full shadow-sm">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">Mahsulotlar kesimida narxlar dinamikasi</h6>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-secondary"><i class="fas fa-sync-alt"></i></button>
+                                <button class="btn btn-outline-secondary"><i class="fas fa-cog"></i></button>
+                                <button id="fullscreenBtnProduct" class="btn btn-outline-secondary"><i
+                                        class="fas fa-expand"></i></button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div id="product_chart" class="chart-container"></div>
+                        </div>
+                        <div class="card-footer text-muted small">
+                            <span class="footerInfo">Footer info</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 5 -->
+                <div class="col-12 col-md-6 col-lg-4 mb-4 d-flex">
+                    <div class="card flex-fill card-full shadow-sm">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">Tumanlar kesimida narxlar dinamikasi</h6>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-secondary"><i class="fas fa-sync-alt"></i></button>
+                                <button class="btn btn-outline-secondary"><i class="fas fa-cog"></i></button>
+                                <button id="fullscreenBtnDistrict" class="btn btn-outline-secondary"><i
+                                        class="fas fa-expand"></i></button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div id="district_chart" class="chart-container"></div>
+                        </div>
+                        <div class="card-footer text-muted small">
+                            <span class="footerInfo">Footer info</span>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Card 6 -->
+                <div class="col-12 col-md-6 col-lg-4 mb-4 d-flex">
+                    <div class="card flex-fill card-full shadow-sm">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">Hududlar kesimida narx oʻzgarishlari dinamikasi</h6>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-secondary"><i class="fas fa-sync-alt"></i></button>
+                                <button class="btn btn-outline-secondary"><i class="fas fa-cog"></i></button>
+                                <button id="fullscreenBtnLinegraph" class="btn btn-outline-secondary"><i
+                                        class="fas fa-expand"></i></button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div id="linegraph_chart" class="chart-container"></div>
+                        </div>
+                        <div class="card-footer text-muted small">
+                            <span class="footerInfo">Footer info</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+
+<!-- CSS card -->
+
+<style>
+    html, body {
+      height: 100%; /* ensure full viewport height */
+    }
+    .main-content, .container-fluid, .row.h-100 {
+      height: 100%;
+    }
+    .card-full {
+      height: 50vh; /* each card fills half the screen height */
+    }
+</style>
+
+<!--chart styles-->
+<style>
+    /* ✅ Card layout */
+    .card-full {
+      display: flex;
+      flex-direction: column;
+      height: 50vh;              /* card fills half viewport height */
+      padding: 10px;
+      box-sizing: border-box;
+    }
+
+    /* ✅ Card body flexes between header and footer */
+    .card-full .card-body {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      padding: 0.5rem;
+    }
+
+    /* ✅ Chart container */
+    .chart-container {
+      flex: 1;
+      width: 100%;
+      min-height: 300px;         /* ensures visible height */
+      overflow-y: auto;          /* scroll vertically if content exceeds */
+      overflow-x: hidden;
+    }
+
+    /* ✅ Footer stays pinned at bottom */
+    .card-footer {
+      flex-shrink: 0;
+    }
+
+    /* ✅ Table headers (sticky) */
+    .product-header,
+    .region-header,
+    .district-header {
+      background: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      font-weight: bold;
+      margin-bottom: 8px;
+      padding-top: 10px;
+    }
+
+    /* ✅ Active row highlight (shared) */
+    .product-row.active-row,
+    .region-row.active-row,
+    .district-row.active-row {
+      background-color: #e0f7fa; /* light teal highlight */
+      border: 2px solid #005645;
+    }
+
+    /* ✅ Row layouts */
+    .product-row,
+    .region-row,
+    .district-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      padding: 4px 0;
+    }
+    .product-row > div,
+    .region-row > div,
+    .district-row > div {
+      flex: 1;
+      text-align: center;
+    }
+
+    /* ✅ Sparkline cell */
+    .product-row .sparkline {
+      flex: 2;
+      height: 40px;
+    }
+
+    /* ✅ Fullscreen styling for charts */
+    #product_chart:fullscreen,
+    #region_chart:fullscreen,
+    #district_chart:fullscreen {
+      background: #fff;   /* force light background */
+      color: #000;        /* ensure text stays dark */
+      padding: 1rem;
+      overflow: auto;
+    }
+
+    /* ✅ Responsive tweaks for tablets */
+    @media (max-width: 1024px) {
+      .card-full {
+        height: auto;            /* let cards grow naturally on iPad */
+        min-height: 300px;
+      }
+      .chart-container {
+        min-height: 200px;
+      }
+    }
+</style>
+<!--chart styles-->
+
+
+<!--loading animation-->
+<script>
+    // 🔄 Reusable loader functions
+    function showLoader(containerId) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        // Create overlay if not exists
+        let loader = container.querySelector('.chart-loader');
+        if (!loader) {
+            loader = document.createElement('div');
+            loader.className = 'chart-loader';
+            loader.innerHTML = '<i class="fas fa-spinner fa-spin fa-3x"></i>';
+            loader.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 10;
+                color: #005645;
+            `;
+            container.style.position = 'relative';
+            container.appendChild(loader);
+        }
+        loader.style.display = 'block';
+    }
+
+    function hideLoader(containerId) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        const loader = container.querySelector('.chart-loader');
+        if (loader) loader.style.display = 'none';
+    }
+
+</script>
+<!--loading animation-->
+
+
+<!--script IMPORTS-->
+<script src="https://code.highcharts.com/maps/highmaps.js"></script>
+<script src="https://code.highcharts.com/maps/modules/data.js"></script>
+<script src="https://code.highcharts.com/maps/modules/drilldown.js"></script>
+<script src="https://code.highcharts.com/maps/modules/accessibility.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/export-data.js"></script>
+<script src="https://code.highcharts.com/modules/accessibility.js"></script>
+
+<script src="https://code.highcharts.com/dashboards/dashboards.js"></script>
+<script src="https://code.highcharts.com/dashboards/datagrid.js"></script>
+<script src="https://code.highcharts.com/dashboards/datatable.js"></script>
+<script src="https://code.highcharts.com/dashboards/datamodifier.js"></script>
+
+<!--script IMPORTS-->
+
+<!--uzbekistan map chart-->
+{% block scripts %}
+
+<script>
+    const staticMapsBase = "{% static 'maps/' %}";
+</script>
+
+<script src="{% static 'dashboard_js/utils.js' %}"></script>
+<script src="{% static 'dashboard_js/charts/product_chart.js' %}"></script>
+<script src="{% static 'dashboard_js/charts/linegraph_chart.js' %}"></script>
+<script src="{% static 'dashboard_js/charts/stacked_column_chart.js' %}"></script>
+<script src="{% static 'dashboard_js/charts/region_chart.js' %}"></script>
+<script src="{% static 'dashboard_js/charts/district_chart.js' %}"></script>
+<script src="{% static 'dashboard_js/charts/map_heatmap.js' %}"></script>
+<script src="{% static 'dashboard_js/dashboard.js' %}"></script>
+
+{% endblock %}
+<!--uzbekistan map chart-->
+
+
+<!--carousel script-->
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+
+        const API_URL = "/api/latest-price-by-product/";
+        const track = document.getElementById("ticker-track");
+
+        let position = 0;
+        let speed = 0.4; // slightly faster for Bloomberg style
+        let playing = true;
+
+        let isDragging = false;
+        let startX = 0;
+        let startPosition = 0;
+
+        // Track animation frame ID
+        let animationId = null;
+
+        function renderItem(item) {
+            const up = item.nominal_change > 0;
+            const down = item.nominal_change < 0;
+            const arrow = up ? '▲' : down ? '▼' : '→';
+
+            // Format price with space as thousands separator
+            const formattedPrice = item.latest_price
+                .toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            return `
+              <div class="ticker-item" data-product-id="${item.product_id}">
+                <div class="product-name">${item.product_name}</div>
+                <div class="product-price">${formattedPrice}</div>
+                <div class="product-change ${up ? 'positive' : down ? 'negative' : 'neutral'}">
+                  ${arrow} ${item.nominal_change.toFixed(2)}<br/>
+                  (${item.percentage_change.toFixed(2)}%)
+                </div>
+              </div>
+            `;
+
+        }
+
+        function animate() {
+            if (!playing || isDragging) return;
+
+            position -= speed;
+            const halfWidth = track.scrollWidth / 2;
+
+            if (Math.abs(position) >= halfWidth) {
+                position = 0;
+            }
+
+            track.style.transform = `translateX(${position}px)`;
+            animationId = requestAnimationFrame(animate);
+        }
+
+        function startAnimation() {
+            if (!animationId) {
+                animationId = requestAnimationFrame(animate);
+            }
+        }
+
+        function stopAnimation() {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+        }
+
+        function startDrag(clientX) {
+            isDragging = true;
+            playing = false;
+            startX = clientX;
+            startPosition = position;
+            stopAnimation(); // stop while dragging
+        }
+
+        function onDrag(clientX) {
+            if (!isDragging) return;
+            position = startPosition + (clientX - startX);
+            track.style.transform = `translateX(${position}px)`;
+        }
+
+        function endDrag() {
+            isDragging = false;
+            playing = true;
+            stopAnimation();
+            startAnimation();
+        }
+
+        // Mouse events
+        track.addEventListener("mousedown", e => startDrag(e.clientX));
+        window.addEventListener("mousemove", e => onDrag(e.clientX));
+        window.addEventListener("mouseup", endDrag);
+
+        // Touch events
+        track.addEventListener("touchstart", e => startDrag(e.touches[0].clientX));
+        window.addEventListener("touchmove", e => onDrag(e.touches[0].clientX));
+        window.addEventListener("touchend", endDrag);
+
+        fetch(API_URL)
+            .then(r => r.json())
+            .then(data => {
+                const html = data.map(renderItem).join("");
+                track.innerHTML = html + html; // duplicate for seamless loop
+
+                // Attach double‑click handlers to each product item
+                track.querySelectorAll(".ticker-item").forEach(item => {
+                    item.addEventListener("dblclick", () => {
+                        const productId = item.dataset.productId;
+                        // 🔑 Update charts with selected product filter only on double‑click
+                        updateAllCharts({ product_id: productId });
+                    });
+                });
+
+                startAnimation(); // start loop safely
+            })
+            .catch(err => console.error("Ticker load error:", err));
+    });
+</script>
+<!--carousel script-->
+
+
+{% endblock main %}
+
+<!--<script>-->
+<!--    const data = [-->
+<!--        { "hc-key": "uz-an", "value": 98430, "drilldown": "Andijon", "name": "Andijon" },-->
+<!--        { "hc-key": "uz-bu", "value": 101287, "drilldown": "Buxoro", "name": "Buxoro" },-->
+<!--        { "hc-key": "uz-fa", "value": 103395, "drilldown": "Farg'ona", "name": "Farg'ona" },-->
+<!--        { "hc-key": "uz-ji", "value": 105490, "drilldown": "Jizzax", "name": "Jizzax" },-->
+<!--        { "hc-key": "uz-ng", "value": 106474, "drilldown": "Namangan", "name": "Namangan" },-->
+<!--        { "hc-key": "uz-nw", "value": 107631, "drilldown": "Navoiy", "name": "Navoiy" },-->
+<!--        { "hc-key": "uz-qa", "value": 108681, "drilldown": "Qashqadaryo", "name": "Qashqadaryo" },-->
+<!--        { "hc-key": "uz-qr", "value": 109938, "drilldown": "Qaraqalpaqstan", "name": "Qoraqalpog'iston" },-->
+<!--        { "hc-key": "uz-sa", "value": 110113, "drilldown": "Samarqand", "name": "Samarkand" },-->
+<!--        { "hc-key": "uz-si", "value": 111230, "drilldown": "Sirdaryo", "name": "Sirdaryo" },-->
+<!--        { "hc-key": "uz-su", "value": 112802, "drilldown": "Surxondaryo", "name": "Surxondaryo" },-->
+<!--        { "hc-key": "uz-tk", "value": 113711, "drilldown": "Toshkent_shahar", "name": "Toshkent sh." },-->
+<!--        { "hc-key": "uz-ta", "value": 114857, "drilldown": "Toshkent_vil", "name": "Toshkent v." },-->
+<!--        { "hc-key": "uz-kh", "value": 115978, "drilldown": "Xorazm", "name": "Xorazm" }-->
+<!--    ];-->
+
+<!--    const drilldown = async function (e) {-->
+<!--        if (!e.seriesOptions) {-->
+<!--            const chart = this;-->
+<!--            const mapName = e.point.drilldown;-->
+
+<!--            chart.showLoading('<i class="icon-spinner icon-spin icon-3x"></i>');-->
+
+<!--            try {-->
+<!--                const url = "{% static 'maps/' %}" + mapName + ".json";-->
+
+<!--                const topology = await fetch(url)-->
+<!--                    .then(response => {-->
+<!--                        if (!response.ok) throw new Error(`Файл ${url} не найден`);-->
+<!--                        return response.json();-->
+<!--                    });-->
+
+<!--                const data = Highcharts.geojson(topology);-->
+<!--                data.forEach(d => { d.value = Math.floor(Math.random() * 100); });-->
+
+<!--                chart.hideLoading();-->
+<!--                chart.addSeriesAsDrilldown(e.point, {-->
+<!--                    name: e.point.name,-->
+<!--                    data: data,-->
+<!--                    dataLabels: {-->
+<!--                        enabled: true,-->
+<!--                        format: '{point.name}',-->
+<!--                        style: {-->
+<!--                            fontSize: '10px',-->
+<!--                            fontWeight: 'normal',-->
+<!--                            color: '#FFFFFF',-->
+<!--                            textOutline: '1px black'-->
+<!--                        }-->
+<!--                    }-->
+<!--                });-->
+<!--            } catch (error) {-->
+<!--                console.error(error);-->
+<!--                chart.hideLoading();-->
+<!--                alert(`Ошибка: ${error.message}. Проверь имя файла в папке maps!`);-->
+<!--            }-->
+<!--        }-->
+<!--    };-->
+
+<!--    (async () => {-->
+<!--        const containerId = 'map_chart';-->
+<!--        showLoader(containerId); // show spinner before fetch-->
+
+<!--        try {-->
+<!--            const topology = await fetch(-->
+<!--                'https://code.highcharts.com/mapdata/countries/uz/uz-all.topo.json'-->
+<!--            ).then(response => response.json());-->
+
+<!--            const chart = Highcharts.mapChart(containerId, {-->
+<!--                chart: {-->
+<!--                    events: { drilldown },-->
+<!--                    styledMode: false-->
+<!--                },-->
+<!--                title: { text: '' },-->
+<!--                subtitle: { text: 'Noyabr oyi holatiga' },-->
+<!--                exporting: {-->
+<!--                    buttons: {-->
+<!--                        contextButton: { enabled: false }-->
+<!--                    }-->
+<!--                },-->
+<!--                colorAxis: {-->
+<!--                    min: 0,-->
+<!--                    minColor: '#E6E7E8',-->
+<!--                    maxColor: '#005645'-->
+<!--                },-->
+<!--                mapNavigation: {-->
+<!--                    enabled: true,-->
+<!--                    buttonOptions: { verticalAlign: 'bottom' }-->
+<!--                },-->
+<!--                plotOptions: {-->
+<!--                    map: {-->
+<!--                        states: { hover: { color: '#EEDD66' } }-->
+<!--                    }-->
+<!--                },-->
+<!--                credits: { enabled: false },-->
+<!--                series: [{-->
+<!--                    data: data,-->
+<!--                    mapData: topology,-->
+<!--                    joinBy: 'hc-key',-->
+<!--                    name: 'Respublika',-->
+<!--                    dataLabels: {-->
+<!--                        enabled: true,-->
+<!--                        format: '{point.name}',-->
+<!--                        style: {-->
+<!--                            fontSize: '14px',-->
+<!--                            fontWeight: 'bold',-->
+<!--                            textOutline: '1px black'-->
+<!--                        }-->
+<!--                    }-->
+<!--                }],-->
+<!--                drilldown: {-->
+<!--                    breadcrumbs: {-->
+<!--                        position: { align: 'right' }-->
+<!--                    },-->
+<!--                    activeDataLabelStyle: {-->
+<!--                        color: '#FFFFFF',-->
+<!--                        textDecoration: 'none',-->
+<!--                        textOutline: '1px #000000'-->
+<!--                    }-->
+<!--                },-->
+<!--                responsive: {-->
+<!--                    rules: [{-->
+<!--                        condition: { maxWidth: 600 },-->
+<!--                        chartOptions: {-->
+<!--                            title: { style: { fontSize: '12px' } },-->
+<!--                            subtitle: { style: { fontSize: '10px' } },-->
+<!--                            legend: { enabled: false }-->
+<!--                        }-->
+<!--                    }]-->
+<!--                }-->
+<!--            });-->
+
+<!--            hideLoader(containerId); // hide spinner once chart is ready-->
+
+<!--            // Connect fullscreen button-->
+<!--            const fullscreenBtn = document.getElementById('fullscreenBtn');-->
+<!--            if (fullscreenBtn) {-->
+<!--                fullscreenBtn.addEventListener('click', () => {-->
+<!--                    chart.fullscreen.toggle();-->
+<!--                });-->
+<!--            }-->
+<!--        } catch (error) {-->
+<!--            console.error(error);-->
+<!--            hideLoader(containerId);-->
+<!--        }-->
+<!--    })();-->
+<!--</script>-->
+

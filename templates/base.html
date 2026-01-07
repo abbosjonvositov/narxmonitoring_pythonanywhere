@@ -1,0 +1,104 @@
+<!doctype html>
+{% load static %}
+<html lang="en">
+{% include 'components_base/_header.html' %}
+<style>
+    .icon-container {
+        transition: transform 0.3s ease;
+    }
+    .carousel-item:hover .icon-container {
+        transform: scale(1.1);
+        box-shadow: 0px 8px 25px rgba(0,0,0,0.15);
+    }
+    .carousel-control-prev-icon,
+    .carousel-control-next-icon {
+        filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.3));
+    }
+</style>
+<body class="horizontal light">
+<div class="wrapper d-flex flex-column min-vh-100">
+    {% include 'components_base/_topnavbar.html' %}
+    {% block main %}
+
+    {% endblock main %}
+
+    <!-- Modern styled Footer with Image Carousel -->
+<!--    <footer class="footer bg-light text-dark py-5 mt-auto border-top">-->
+<!--        <div class="container">-->
+<!--            <div id="footerCarousel" class="carousel slide" data-ride="carousel" data-interval="5000"-->
+<!--                 data-pause="hover">-->
+<!--                &lt;!&ndash; Indicators &ndash;&gt;-->
+<!--                <ol class="carousel-indicators">-->
+<!--                    <li data-target="#footerCarousel" data-slide-to="0" class="active"></li>-->
+<!--                    <li data-target="#footerCarousel" data-slide-to="1"></li>-->
+<!--                    <li data-target="#footerCarousel" data-slide-to="2"></li>-->
+<!--                </ol>-->
+
+<!--                <div class="carousel-inner">-->
+<!--                    &lt;!&ndash; Image Slide 1 &ndash;&gt;-->
+<!--                    <div class="carousel-item active text-center py-4">-->
+<!--                        <img src="{% static 'assets/images/cbu.svg' %}" alt="CBU Logo"-->
+<!--                             style="height: 100px; object-fit: contain; margin: 0 auto;">-->
+<!--                    </div>-->
+
+<!--                    &lt;!&ndash; Image Slide 2 &ndash;&gt;-->
+<!--                    <div class="carousel-item text-center py-4">-->
+<!--                        <img src="{% static 'assets/images/minfin.png' %}" alt="Minfin Logo"-->
+<!--                             style="height: 100px; object-fit: contain; margin: 0 auto;">-->
+<!--                    </div>-->
+
+<!--                    &lt;!&ndash; Icon + Text Slide 3 &ndash;&gt;-->
+<!--                    &lt;!&ndash;                    <div class="carousel-item px-4">&ndash;&gt;-->
+<!--                    &lt;!&ndash;                        <div class="d-flex flex-column flex-md-row align-items-center justify-content-center text-center text-md-left py-4">&ndash;&gt;-->
+<!--                    &lt;!&ndash;                            <div class="icon-container bg-info text-white rounded-circle d-flex align-items-center justify-content-center mb-3 mb-md-0"&ndash;&gt;-->
+<!--                    &lt;!&ndash;                                 style="width:70px; height:70px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin: 0 auto;">&ndash;&gt;-->
+<!--                    &lt;!&ndash;                                <i class="fas fa-headset fa-2x"></i>&ndash;&gt;-->
+<!--                    &lt;!&ndash;                            </div>&ndash;&gt;-->
+<!--                    &lt;!&ndash;&lt;!&ndash;                            <div class="ml-md-4 px-md-3">&ndash;&gt;&ndash;&gt;-->
+<!--                    &lt;!&ndash;&lt;!&ndash;                                <h5 class="font-weight-bold mb-2" style="letter-spacing: 0.05em;">24/7&ndash;&gt;&ndash;&gt;-->
+<!--                    &lt;!&ndash;&lt;!&ndash;                                    QO'MAB-QUVVATLASH</h5>&ndash;&gt;&ndash;&gt;-->
+<!--                    &lt;!&ndash;&lt;!&ndash;                                <p class="mb-0 text-muted font-weight-light" style="font-size: 1.125rem;">Tez va sifatli&ndash;&gt;&ndash;&gt;-->
+<!--                    &lt;!&ndash;&lt;!&ndash;                                    yordam olish imkoniyati har doim mavjud.</p>&ndash;&gt;&ndash;&gt;-->
+<!--                    &lt;!&ndash;&lt;!&ndash;                            </div>&ndash;&gt;&ndash;&gt;-->
+<!--                    &lt;!&ndash;                        </div>&ndash;&gt;-->
+<!--                    &lt;!&ndash;                    </div>&ndash;&gt;-->
+<!--                </div>-->
+
+<!--                &lt;!&ndash; IMPORTANT: Carousel arrows removed as requested &ndash;&gt;-->
+<!--                &lt;!&ndash; Controls are omitted intentionally &ndash;&gt;-->
+
+<!--            </div>-->
+
+<!--            <hr class="my-5">-->
+
+<!--            <div class="row text-center text-md-left align-items-center">-->
+<!--                <div class="col-md-6 mb-3 mb-md-0">-->
+<!--                    <small class="text-muted">&copy; <span id="currentYear"></span> Abbosjon Vositov</small>-->
+<!--                </div>-->
+<!--                <div class="col-md-6">-->
+<!--                    <ul class="list-inline mb-0 d-flex justify-content-center justify-content-md-end">-->
+<!--                        <li class="list-inline-item mx-3"><a href="#"-->
+<!--                                                             class="text-muted text-uppercase font-weight-light small">Shartnoma</a>-->
+<!--                        </li>-->
+<!--                        <li class="list-inline-item mx-3"><a href="#"-->
+<!--                                                             class="text-muted text-uppercase font-weight-light small">Maxfiylik</a>-->
+<!--                        </li>-->
+<!--                        <li class="list-inline-item mx-3"><a href="#"-->
+<!--                                                             class="text-muted text-uppercase font-weight-light small">Aloqa</a>-->
+<!--                        </li>-->
+<!--                    </ul>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </footer>-->
+</div> <!-- .wrapper -->
+
+{% include 'components_base/_scripts.html' %}
+
+
+<!--<script>-->
+<!--    document.getElementById('currentYear').textContent = new Date().getFullYear();-->
+<!--</script>-->
+
+</body>
+</html>

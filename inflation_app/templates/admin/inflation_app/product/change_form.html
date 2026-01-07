@@ -1,0 +1,15 @@
+{% extends "admin/change_form.html" %}
+{% load i18n %}
+
+{% block submit_buttons_bottom %}
+  {{ block.super }}
+  {% if original %}
+    <div class="submit-row mt-3">
+      <a href="{% url 'admin:inflation_app_product_replace' original.pk %}"
+         class="btn btn-warning"
+         style="margin-left:10px;">
+        <i class="fas fa-exchange-alt"></i> {% trans 'Replace with another product' %}
+      </a>
+    </div>
+  {% endif %}
+{% endblock %}

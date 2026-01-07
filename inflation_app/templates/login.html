@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+{% load static %}
+{% include 'components_base/_header.html' %}
+<style>
+    .login-logo {
+        height: 56px;   /* bigger than navbar */
+        width: auto;
+    }
+</style>
+<body class="light ">
+<div class="wrapper vh-100">
+    <div class="row justify-content-center align-items-center vh-100">
+        <div class="col-lg-4 col-md-6 col-10">
+            <div class="card shadow-sm rounded-5">
+                <div class="card-body p-4 text-center">
+
+                    <a href="{% url 'landing_page' %}"
+                       class="d-flex flex-column align-items-center mb-4 text-decoration-none">
+                        <img
+                                src="{% static 'assets/images/logo.svg' %}"
+                                alt="Narxlar va Hududlar"
+                                class="login-logo mb-3"
+                                style="width: 80px; height: auto;"
+                        >
+                        <span class="h5 text-dark mb-0">Narx tahlili</span>
+                    </a>
+
+                    <form method="post" action="{% url 'login' %}">
+                        {% csrf_token %}
+
+                        <div class="form-group mb-3">
+                            <label for="inputUsername" class="sr-only">Username</label>
+                            <input type="text" name="username" id="inputUsername"
+                                   class="form-control form-control-lg rounded-3"
+                                   placeholder="Username" required autofocus>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="inputPassword" class="sr-only">Password</label>
+                            <input type="password" name="password" id="inputPassword"
+                                   class="form-control form-control-lg rounded-3"
+                                   placeholder="Password" required>
+                        </div>
+
+                        <button class="btn btn-primary btn-lg btn-block w-100 rounded-3" type="submit">Kirish</button>
+
+                        {% if error %}
+                        <p class="text-danger mt-2">{{ error }}</p>
+                        {% endif %}
+                    </form>
+
+                    <p class="mt-4 mb-0 text-muted">developed by Abbosjon Vositov</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% include 'components_base/_scripts.html' %}
+</body>
+</html>
+</body>
+</html>

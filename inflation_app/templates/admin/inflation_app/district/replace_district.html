@@ -1,0 +1,32 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="module aligned">
+  <h2 style="color:#b94a48;">
+    ⚠️ {% trans "Replace district" %}
+  </h2>
+
+  <div class="alert alert-warning">
+    <p><strong>{{ district }}</strong> {% trans "will be permanently replaced." %}</p>
+    <ul>
+      <li>{% trans "All related price observations will be reassigned." %}</li>
+      <li>{% trans "This district record will then be deleted." %}</li>
+    </ul>
+    <p><b>{% trans "This action cannot be undone." %}</b></p>
+  </div>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {{ form.as_p }}
+    <div class="submit-row">
+      <button type="submit" class="btn btn-warning">
+        <i class="fas fa-exchange-alt"></i> {% trans "Confirm replacement" %}
+      </button>
+      <a href="{% url 'admin:inflation_app_district_change' original.pk %}" class="btn btn-secondary">
+        {% trans "Cancel" %}
+      </a>
+    </div>
+  </form>
+</div>
+{% endblock %}

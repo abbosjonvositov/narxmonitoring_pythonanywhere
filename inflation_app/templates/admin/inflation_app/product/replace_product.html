@@ -1,0 +1,48 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+  › <a href="{% url 'admin:app_list' app_label %}">{{ app_label|capfirst }}</a>
+  › <a href="{% url 'admin:inflation_app_product_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+  › <a href="{% url 'admin:inflation_app_product_change' original.pk %}">{{ original }}</a>
+  › {% trans 'Replace' %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="module aligned">
+  <h2 style="margin-bottom:1em; color:#b94a48;">
+    ⚠️ {% trans "Replace product" %}
+  </h2>
+
+  <div class="alert alert-warning" style="background:#f2dede; border:1px solid #ebccd1; padding:15px; border-radius:4px; margin-bottom:20px;">
+    <p>
+      <strong>{{ product }}</strong> {% trans "will be permanently replaced." %}
+    </p>
+    <ul style="margin:0 0 0 20px;">
+      <li>{% trans "All related price observations will be reassigned to the selected product." %}</li>
+      <li>{% trans "This product record will then be deleted." %}</li>
+    </ul>
+    <p style="margin-top:10px; font-weight:bold;">
+      {% trans "This action cannot be undone." %}
+    </p>
+  </div>
+
+  <form method="post" novalidate class="form-horizontal">
+    {% csrf_token %}
+    <fieldset>
+      <legend>{% trans "Select replacement product" %}</legend>
+      {{ form.as_p }}
+    </fieldset>
+
+    <div class="submit-row" style="margin-top:20px;">
+      <input type="submit" value="{% trans '✅ Confirm replacement' %}" class="default" style="background:#d9534f; border-color:#d43f3a; color:white; font-weight:bold;">
+      <a href="{% url 'admin:inflation_app_product_change' original.pk %}" class="button cancel-link" style="margin-left:10px;">
+        {% trans 'Cancel' %}
+      </a>
+    </div>
+  </form>
+</div>
+{% endblock %}
