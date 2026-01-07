@@ -57,7 +57,7 @@ async function drilldownFromRegionChart(regionId, regionName, dashboardData) {
 
 async function drilldownHandler(e) {
   if (!e.seriesOptions) {
-    isInDrilldown = true; // mark drilldown state
+    isInDrilldown = true;
     const chart = this;
     const fileName = drilldownFileMap[e.point.region_id];
 
@@ -71,7 +71,6 @@ async function drilldownHandler(e) {
         fetchDashboardData(mergedFilters)
       ]);
 
-      // ✅ Access chart data via charts.map_heatmap.data
       const mapResult = dashboardData.charts.map_heatmap;
 
       const districtShapes = Highcharts.geojson(topology);
@@ -82,6 +81,7 @@ async function drilldownHandler(e) {
           shape.properties.name ||
           shape.properties.id ||
           "";
+
         const shapeName = shapeNameRaw.trim().toLowerCase();
 
         const match = mapResult.data.find(d => {
@@ -98,24 +98,47 @@ async function drilldownHandler(e) {
         };
       });
 
+      // -------------------- ✅ PRICE SCALING (DRILLDOWN) --------------------
+      const drilldownValues = districtData
+        .map(d => d.value)
+        .filter(v => v !== null && v !== undefined);
+
+      if (drilldownValues.length) {
+        let minDrill = Math.min(...drilldownValues);
+        let maxDrill = Math.max(...drilldownValues);
+
+        // Prevent flat scale
+        if (minDrill === maxDrill) {
+          minDrill *= 0.99;
+          maxDrill *= 1.01;
+        }
+
+        chart.colorAxis[0].update(
+          { min: minDrill, max: maxDrill },
+          false // defer redraw
+        );
+      }
+
       chart.hideLoading();
+
       chart.addSeriesAsDrilldown(e.point, {
         name: e.point.name,
         data: districtData,
         dataLabels: { enabled: true, format: "{point.name}" }
       });
 
-      // ✅ Update subtitle using interface_text (Latin only)
+      // -------------------- ✅ SUBTITLE UPDATE --------------------
       const productName = currentInterfaceText?.product_name_latin || "Unknown product";
       const formattedDate = currentInterfaceText?.date_visual || "";
+
       chart.setSubtitle({
         text: `${productName} — ${e.point.name} — ${formattedDate}`
       });
 
-      // ✅ Update global filters after drilldown
+      // -------------------- ✅ UPDATE FILTER STATE --------------------
       currentFilters = mergedFilters;
 
-      // ✅ Pass dashboardData to avoid duplicate request
+      // -------------------- ✅ UPDATE OTHER CHARTS --------------------
       updateAllCharts(mergedFilters, { skipMap: true, dashboardData });
 
     } catch (error) {
@@ -129,27 +152,31 @@ async function drilldownHandler(e) {
 function renderMapHeatmap(apiData, interfaceText = {}) {
   const containerId = 'map_chart';
   showLoader(containerId);
-  console.log("Interface text inside renderMapHeatmap:", interfaceText);
 
   fetch('https://code.highcharts.com/mapdata/countries/uz/uz-all.topo.json')
     .then(response => response.json())
     .then(topology => {
-      // ✅ apiData is already charts.map_heatmap.data
       const data = apiData.map(r => ({
         "hc-key": hcKeyMap[r.region_id],
         value: r.price,
         drilldown: "region-" + r.region_id,
-        // Use Latin name for consistency
         name: r.region_name_latin || r.region_name_cyrillic,
         region_id: r.region_id
       }));
 
-      // ✅ Compute dynamic min and max from apiData
-      const values = data.map(d => d.value);
-      const minValue = Math.min(...values);
-      const maxValue = Math.max(...values);
+      const values = data
+        .map(d => d.value)
+        .filter(v => v !== null && v !== undefined);
 
-      // ✅ Extract product name + date from interfaceText only
+      let minValue = Math.min(...values);
+      let maxValue = Math.max(...values);
+
+      // Prevent flat scale
+      if (minValue === maxValue) {
+        minValue *= 0.99;
+        maxValue *= 1.01;
+      }
+
       const productName = interfaceText?.product_name_latin || 'Unknown product';
       const formattedDate = interfaceText?.date_visual || '';
 
@@ -159,7 +186,6 @@ function renderMapHeatmap(apiData, interfaceText = {}) {
             mapChart = Highcharts.mapChart(containerId, {
               chart: {
                 events: {
-                  // ✅ Use centralized drilldown handler
                   drilldown: drilldownHandler
                 },
                 styledMode: false
@@ -168,8 +194,9 @@ function renderMapHeatmap(apiData, interfaceText = {}) {
               subtitle: {
                 text: `${productName} — ${formattedDate}`
               },
-              exporting: { buttons: { contextButton: { enabled: false } } },
-              // ✅ Dynamic color axis
+              exporting: {
+                buttons: { contextButton: { enabled: false } }
+              },
               colorAxis: {
                 min: minValue,
                 max: maxValue,
@@ -182,10 +209,20 @@ function renderMapHeatmap(apiData, interfaceText = {}) {
                 verticalAlign: 'bottom',
                 backgroundColor: '#FFFFFF',
                 symbolWidth: 300,
-                title: { text: 'Narx darajasi', style: { fontSize: '12px' } }
+                title: {
+                  text: 'Narx darajasi',
+                  style: { fontSize: '12px' }
+                }
               },
-              mapNavigation: { enabled: true, buttonOptions: { verticalAlign: 'bottom' } },
-              plotOptions: { map: { states: { hover: { color: '#EEDD66' } } } },
+              mapNavigation: {
+                enabled: true,
+                buttonOptions: { verticalAlign: 'bottom' }
+              },
+              plotOptions: {
+                map: {
+                  states: { hover: { color: '#EEDD66' } }
+                }
+              },
               credits: { enabled: false },
               series: [{
                 data,
@@ -195,7 +232,11 @@ function renderMapHeatmap(apiData, interfaceText = {}) {
                 dataLabels: {
                   enabled: true,
                   format: '{point.name}',
-                  style: { fontSize: '14px', fontWeight: 'bold', textOutline: '1px black' }
+                  style: {
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    textOutline: '1px black'
+                  }
                 }
               }],
               drilldown: {
@@ -208,13 +249,12 @@ function renderMapHeatmap(apiData, interfaceText = {}) {
               }
             });
 
-            // ✅ Proper drill‑up handling
+            // -------------------- ✅ DRILL-UP HANDLING --------------------
             Highcharts.addEvent(mapChart, 'drillup', function () {
               isInDrilldown = false;
-              // Reset both region_id and district_id to null
               currentFilters.region_id = null;
               currentFilters.district_id = null;
-              // Refresh charts at top level
+
               setTimeout(() => {
                 updateAllCharts(currentFilters);
               }, 0);
@@ -222,20 +262,25 @@ function renderMapHeatmap(apiData, interfaceText = {}) {
 
             const fullscreenBtn = document.getElementById('fullscreenBtn');
             if (fullscreenBtn) {
-              fullscreenBtn.addEventListener('click', () => mapChart.fullscreen.toggle());
+              fullscreenBtn.addEventListener('click', () =>
+                mapChart.fullscreen.toggle()
+              );
             }
           } else {
-            // ✅ Refresh existing map
             mapChart.series[0].setData(data);
             mapChart.setSubtitle({
               text: `${productName} — ${formattedDate}`
             });
-            // ✅ Update colorAxis dynamically on refresh
-            mapChart.colorAxis[0].update({ min: minValue, max: maxValue });
+
+            // ✅ Update color scale on refresh
+            mapChart.colorAxis[0].update({
+              min: minValue,
+              max: maxValue
+            });
           }
 
           hideLoader(containerId);
-        }, 3000);
+        }, 300);
       }
     })
     .catch(error => {

@@ -47,6 +47,12 @@ function renderDistrictChart(districts) {
   container.innerHTML = "";
   showLoader(containerId);
 
+  // ✅ Shared column sizing (same as region)
+  const COL_FLEX = {
+    text: "1",
+    bar: "0 0 130px"
+  };
+
   setTimeout(() => {
     // Use change_pct from API instead of calculating
     districts.forEach(d => {
@@ -64,7 +70,7 @@ function renderDistrictChart(districts) {
       currentDistrictSort.direction
     );
 
-    // Header row
+    // ================= HEADER =================
     const headerRow = document.createElement("div");
     headerRow.className = "district-header";
     headerRow.style.display = "flex";
@@ -75,6 +81,7 @@ function renderDistrictChart(districts) {
     headerRow.style.background = "#fff";
     headerRow.style.zIndex = "10";
     headerRow.style.paddingTop = "10px";
+    headerRow.style.width = "100%";
 
     const headers = [
       { label: "Tuman nomi", key: "name" },
@@ -86,7 +93,8 @@ function renderDistrictChart(districts) {
 
     headers.forEach((h, idx) => {
       const cell = document.createElement("div");
-      cell.style.flex = idx === 4 ? "0 0 200px" : "1"; // ✅ fixed width for bar chart column
+      cell.style.flex = idx === 4 ? COL_FLEX.bar : COL_FLEX.text;
+      cell.style.minWidth = "0";               // ✅ allow shrink
       cell.style.textAlign = "center";
       cell.textContent = h.label;
 
@@ -106,9 +114,10 @@ function renderDistrictChart(districts) {
 
       headerRow.appendChild(cell);
     });
+
     container.appendChild(headerRow);
 
-    // District rows
+    // ================= ROWS =================
     sortedDistricts.forEach(district => {
       const nominalChange = district.nominal_change;
       const pctChange = district.pct_change;
@@ -140,26 +149,32 @@ function renderDistrictChart(districts) {
         }
       });
 
+      // ---- District name (safe for long text) ----
       const nameEl = document.createElement("div");
-      nameEl.style.flex = "1";
+      nameEl.style.flex = COL_FLEX.text;
+      nameEl.style.minWidth = "0";              // ✅ CRITICAL
+      nameEl.style.whiteSpace = "nowrap";
+      nameEl.style.overflow = "hidden";
+      nameEl.style.textOverflow = "ellipsis";
       nameEl.style.textAlign = "center";
+      nameEl.title = district.name;             // full name on hover
       nameEl.textContent = district.name;
       row.appendChild(nameEl);
 
       const actualEl = document.createElement("div");
-      actualEl.style.flex = "1";
+      actualEl.style.flex = COL_FLEX.text;
       actualEl.style.textAlign = "center";
       actualEl.textContent = formatNumber(district.actual);
       row.appendChild(actualEl);
 
       const prevEl = document.createElement("div");
-      prevEl.style.flex = "1";
+      prevEl.style.flex = COL_FLEX.text;
       prevEl.style.textAlign = "center";
       prevEl.textContent = formatNumber(district.prev);
       row.appendChild(prevEl);
 
       const pctEl = document.createElement("div");
-      pctEl.style.flex = "1";
+      pctEl.style.flex = COL_FLEX.text;
       pctEl.style.textAlign = "center";
       pctEl.textContent = formatPercent(pctChange);
       pctEl.style.color = pctChange >= 0 ? "green" : "red";
@@ -167,8 +182,9 @@ function renderDistrictChart(districts) {
 
       const barEl = document.createElement("div");
       barEl.className = "barchart";
-      barEl.style.flex = "0 0 200px";   // ✅ fixed width
+      barEl.style.flex = COL_FLEX.bar;
       barEl.style.height = "60px";
+      barEl.style.overflow = "hidden";
       row.appendChild(barEl);
 
       container.appendChild(row);
@@ -180,15 +196,14 @@ function renderDistrictChart(districts) {
         exporting: { enabled: false },
         xAxis: { categories: [district.name], labels: { enabled: false } },
         yAxis: {
-          min: globalMin,   // ✅ consistent min
-          max: globalMax,   // ✅ consistent max
           title: { text: null },
           labels: { enabled: false },
-          gridLineWidth: 0
+          gridLineWidth: 0,
+          min: globalMin,
+          max: globalMax
         },
         legend: { enabled: false },
         series: [{
-          name: "Nominal Change",
           data: [nominalChange],
           color: nominalChange >= 0 ? "green" : "red"
         }],
@@ -201,10 +216,10 @@ function renderDistrictChart(districts) {
             borderWidth: 0,
             dataLabels: {
               enabled: true,
-              formatter: function() {
+              formatter: function () {
                 return formatNumber(this.y);
               },
-              align: function() {
+              align: function () {
                 return this.y >= 0 ? "right" : "left";
               }
             }

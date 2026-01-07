@@ -129,155 +129,541 @@
     <div id="ticker-track" class="ticker-track"></div>
 </div>
 
-<div id="mainContentWrapper" class="transition-wrapper">
-    <main role="main" class="main-content">
-        <div class="container-fluid">
-            <!-- Date Picker -->
-            <div class="row mb-3">
-                <div class="col-12 text-center">
-                    <div id="dateDropdownContainer" class="d-inline-block mr-3">
-                        <!-- Dropdown will be injected here -->
+<!-- ✅ Right Sidebar (Offcanvas Navbar) -->
+<!-- ✅ Sidebar Base Styling -->
+<style>
+    /* Sidebar base styling */
+    #rightSidebar {
+        background-color: #1f1f1f !important; /* force dark background */
+        color: #e0e0e0 !important;            /* force light text */
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        overflow-y: auto;
+        border-left: 1px solid #333;
+    }
+
+    /* Collapsed state */
+    #rightSidebar.sidebar-collapsed {
+        display: none;
+    }
+
+    /* Expanded state */
+    #rightSidebar.sidebar-expanded {
+        display: block;
+    }
+
+    /* Sidebar header strip */
+    #rightSidebar .sidebar-header {
+        background-color: #1f1f1f !important; /* ticker track style */
+        border-bottom: 1px solid #333;
+        color: #f0f0f0 !important;
+        padding: 5px 8px; /* reduced */
+        font-weight: 600;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    /* Sidebar body */
+    #rightSidebar .sidebar-body {
+        padding: 5px; /* reduced */
+        background-color: #121212 !important; /* keep body dark */
+    }
+
+    /* Sidebar footer */
+    #rightSidebar .sidebar-footer {
+        background-color: #1f1f1f !important;
+        border-top: 1px solid #333;
+        padding: 5px 8px; /* reduced */
+        font-size: 0.85rem;
+        color: #bbbbbb !important;
+        text-align: center;
+    }
+
+    /* Toggle button */
+    .sidebar-toggle {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1100;
+        background-color: #1f1f1f;
+        color: #e0e0e0;
+        border: 1px solid #333;
+        border-radius: 6px;
+        padding: 5px 8px; /* reduced */
+        transition: background-color 0.2s, transform 0.2s;
+    }
+
+    .sidebar-toggle:hover {
+        background-color: #333;
+        transform: translateY(-2px);
+    }
+</style>
+
+<!-- ✅ Product List / Ticker -->
+<style>
+    .right-sidebar-product {
+        width: 100%;
+        height: 220px; /* header + 5 rows */
+        overflow: hidden;
+        position: relative;
+        font-family: Arial, sans-serif;
+        color: #e0e0e0;
+    }
+
+    .right-sidebar-product-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+        align-items: center;
+        text-align: center;
+        padding: 5px 8px; /* reduced */
+        font-size: 14px;
+        border-bottom: 1px solid #333;
+        transition: background 0.3s;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .right-sidebar-product-row span:first-child {
+        text-align: left; /* product name left aligned */
+    }
+
+    .right-sidebar-product-highlight {
+        background: #2a2a2a;
+        font-weight: bold;
+        color: #ffffff;
+    }
+
+    .right-sidebar-product-list {
+        transition: transform 0.5s ease-in-out;
+    }
+
+    /* Arrow indicators */
+    .arrow-up {
+        color: #4caf50;
+        font-weight: bold;
+    }
+
+    .arrow-down {
+        color: #f44336;
+        font-weight: bold;
+    }
+
+    /* Extra info below product list */
+    .extra-info {
+        margin-top: 5px; /* reduced */
+        padding: 5px;    /* reduced */
+        border-top: 1px solid #333;
+        font-size: 13px;
+        background: #1f1f1f;
+        color: #bbbbbb;
+    }
+</style>
+
+<!-- ✅ Performance Table -->
+<style>
+    .right-bar-extra-info {
+        margin-top: 5px; /* reduced */
+        padding: 5px;    /* reduced */
+        border-top: 1px solid #333;
+        font-size: 13px;
+        background: #1f1f1f;
+        color: #bbbbbb;
+    }
+
+    .right-bar-performance-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 5px; /* reduced */
+        font-size: 13px;
+        table-layout: fixed;
+    }
+
+    .right-bar-performance-table th,
+    .right-bar-performance-table td {
+        border: 1px solid #333;
+        padding: 5px; /* reduced */
+        text-align: center;
+        word-wrap: break-word;
+    }
+
+    .right-bar-performance-table th {
+        background: #2a2a2a;
+        color: #e0e0e0;
+        font-weight: 600;
+    }
+
+    .right-bar-performance-positive {
+        color: #4caf50;
+        font-weight: bold;
+    }
+
+    .right-bar-performance-negative {
+        color: #f44336;
+        font-weight: bold;
+    }
+
+    .right-bar-performance-neutral {
+        color: #999999;
+        font-weight: bold;
+    }
+</style>
+
+<!-- ✅ Region Summary / Heatmap -->
+<style>
+    .right-bar-region-summary {
+        margin-top: 5px; /* reduced */
+        padding: 5px;    /* reduced */
+        background: #1f1f1f;
+        border: 1px solid #333;
+        border-radius: 4px;
+        font-size: 13px;
+        color: #e0e0e0;
+        overflow-x: auto; /* keep table inside card */
+    }
+
+    .right-bar-region-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 5px; /* reduced */
+        font-size: 12px; /* slightly smaller to fit */
+        table-layout: fixed;
+    }
+
+    .right-bar-region-table th,
+    .right-bar-region-table td {
+        border: 1px solid #333;
+        padding: 5px; /* reduced */
+        text-align: center;
+        color: #e0e0e0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .right-bar-region-table th {
+        background: #2a2a2a;
+        font-weight: 600;
+    }
+
+    /* Tint highlights for metrics */
+    .region-increase { background-color: rgba(76, 175, 80, 0.2); }
+    .region-decrease { background-color: rgba(244, 67, 54, 0.2); }
+    .region-expensive { background-color: rgba(255, 215, 0, 0.2); }
+    .region-cheap { background-color: rgba(3, 169, 244, 0.2); }
+
+    /* Heatmap classes */
+    .heatmap-positive {
+        background-color: rgba(76, 175, 80, 0.3);
+    }
+
+    .heatmap-negative {
+        background-color: rgba(244, 67, 54, 0.3);
+    }
+
+    .heatmap-neutral {
+        background-color: rgba(153, 153, 153, 0.2);
+    }
+
+    /* Optional legend styling */
+    .right-bar-region-legend {
+        margin: 5px 0; /* reduced */
+        font-size: 12px;
+        color: #bbbbbb;
+    }
+
+    .right-bar-region-legend span {
+        padding: 2px 5px; /* reduced */
+        border-radius: 3px;
+        margin-right: 5px; /* reduced */
+        display: inline-block;
+    }
+
+    /* Tooltip for truncated region names */
+    .right-bar-region-table td[title] {
+        cursor: help;
+    }
+</style>
+
+<!-- ✅ Insights -->
+<style>
+    .right-bar-insights {
+        margin-top: 5px;   /* reduced from 15px */
+        padding: 5px;      /* reduced from 10px */
+        border-top: 1px solid #333;
+        font-size: 13px;
+        background: #1f1f1f;
+        color: #bbbbbb;
+    }
+
+    .right-bar-insights-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 5px;   /* reduced from 10px */
+        font-size: 13px;
+        table-layout: fixed;
+    }
+
+    .right-bar-insights-table th,
+    .right-bar-insights-table td {
+        border: 1px solid #333;
+        padding: 5px;      /* reduced from 6px 8px */
+        text-align: center;
+        word-wrap: break-word;
+    }
+
+    .right-bar-insights-table th {
+        background: #2a2a2a;
+        color: #e0e0e0;
+        font-weight: 600;
+    }
+
+    /* Tint styles for values */
+    .insight-positive {
+        background-color: rgba(76, 175, 80, 0.15); /* green tint */
+        color: #4caf50;
+        font-weight: bold;
+    }
+
+    .insight-negative {
+        background-color: rgba(244, 67, 54, 0.15); /* red tint */
+        color: #f44336;
+        font-weight: bold;
+    }
+
+    .insight-expensive {
+        background-color: rgba(255, 193, 7, 0.15); /* amber tint */
+        color: #ffc107;
+        font-weight: bold;
+    }
+
+    .insight-cheapest {
+        background-color: rgba(33, 150, 243, 0.15); /* blue tint */
+        color: #2196f3;
+        font-weight: bold;
+    }
+</style>
+
+<!--tabular picker-->
+<style>
+    .table-picker {
+  position: relative;
+  height: 200px; /* 5 rows × 40px each */
+  overflow: hidden;
+}
+
+.table-picker-list {
+  transition: transform 0.6s ease;
+}
+
+.table-picker-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+  height: 40px;
+  line-height: 40px;
+  text-align: center;
+  color: #666;
+}
+
+.table-picker-row.active {
+  background-color: #e6f0ff; /* highlight background */
+  color: #000;
+  font-weight: bold;
+}
+
+</style>
+
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Main Content -->
+        <div id="mainContentWrapper" class="col-md-8 col-lg-9 transition-wrapper">
+            <main role="main" class="main-content">
+                <div class="container-fluid">
+                    <!-- Date Picker -->
+                    <div class="row mb-3">
+                        <div class="col-12 text-center">
+                            <div id="dateDropdownContainer" class="d-inline-block mr-3">
+                                <!-- Dropdown will be injected here -->
+                            </div>
+                            <div id="appliedFiltersContainer" class="d-inline-block">
+                                <!-- Applied filters will be injected here -->
+                            </div>
+                        </div>
                     </div>
-                    <div id="appliedFiltersContainer" class="d-inline-block">
-                        <!-- Applied filters will be injected here -->
+
+                    <!-- Card Grid -->
+                    <div class="row g-1">
+                        <!-- Card 1 -->
+                        <div class="col-12 col-md-6 col-lg-4 mb-3 d-flex">
+                            <div class="card flex-fill card-full shadow-sm">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0">Viloyatlar va tumanlar kesimida narxlar darajasi</h6>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-secondary"><i class="fas fa-sync-alt"></i>
+                                        </button>
+                                        <button class="btn btn-outline-secondary"><i class="fas fa-cog"></i></button>
+                                        <button id="fullscreenBtn" class="btn btn-outline-secondary"><i
+                                                class="fas fa-expand"></i></button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div id="map_chart" class="chart-container"></div>
+                                </div>
+                                <div class="card-footer text-muted small">
+                                    <span class="footerInfo">Footer info</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 2 -->
+                        <div class="col-12 col-md-6 col-lg-4 mb-3 d-flex">
+                            <div class="card flex-fill card-full shadow-sm">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0">Hududlar kesimida narxlar dinamikasi</h6>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-secondary"><i class="fas fa-sync-alt"></i>
+                                        </button>
+                                        <button class="btn btn-outline-secondary"><i class="fas fa-cog"></i></button>
+                                        <button id="fullscreenBtnRegion" class="btn btn-outline-secondary"><i
+                                                class="fas fa-expand"></i></button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div id="region_chart" class="chart-container"></div>
+                                </div>
+                                <div class="card-footer text-muted small">
+                                    <span class="footerInfo">Footer info</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 3 -->
+                        <div class="col-12 col-md-6 col-lg-4 mb-3 d-flex">
+                            <div class="card flex-fill card-full shadow-sm">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0">Hududlar kesimida stacked column chart</h6>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-secondary"><i class="fas fa-sync-alt"></i>
+                                        </button>
+                                        <button class="btn btn-outline-secondary"><i class="fas fa-cog"></i></button>
+                                        <button id="fullscreenBtnStackedColumn" class="btn btn-outline-secondary"><i
+                                                class="fas fa-expand"></i></button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div id="stacked_column_chart" class="chart-container"></div>
+                                </div>
+                                <div class="card-footer text-muted small">
+                                    <span class="footerInfo">Footer info</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 4 -->
+                        <div class="col-12 col-md-6 col-lg-4 mb-3 d-flex">
+                            <div class="card flex-fill card-full shadow-sm">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0">Mahsulotlar kesimida narxlar dinamikasi</h6>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-secondary"><i class="fas fa-sync-alt"></i>
+                                        </button>
+                                        <button class="btn btn-outline-secondary"><i class="fas fa-cog"></i></button>
+                                        <button id="fullscreenBtnProduct" class="btn btn-outline-secondary"><i
+                                                class="fas fa-expand"></i></button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div id="product_chart" class="chart-container"></div>
+                                </div>
+                                <div class="card-footer text-muted small">
+                                    <span class="footerInfo">Footer info</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 5 -->
+                        <div class="col-12 col-md-6 col-lg-4 mb-3 d-flex">
+                            <div class="card flex-fill card-full shadow-sm">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0">Tumanlar kesimida narxlar dinamikasi</h6>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-secondary"><i class="fas fa-sync-alt"></i>
+                                        </button>
+                                        <button class="btn btn-outline-secondary"><i class="fas fa-cog"></i></button>
+                                        <button id="fullscreenBtnDistrict" class="btn btn-outline-secondary"><i
+                                                class="fas fa-expand"></i></button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div id="district_chart" class="chart-container"></div>
+                                </div>
+                                <div class="card-footer text-muted small">
+                                    <span class="footerInfo">Footer info</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 6 -->
+                        <div class="col-12 col-md-6 col-lg-4 mb-3 d-flex">
+                            <div class="card flex-fill card-full shadow-sm">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0">Hududlar kesimida narx oʻzgarishlari dinamikasi</h6>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-secondary"><i class="fas fa-sync-alt"></i>
+                                        </button>
+                                        <button class="btn btn-outline-secondary"><i class="fas fa-cog"></i></button>
+                                        <button id="fullscreenBtnLinegraph" class="btn btn-outline-secondary"><i
+                                                class="fas fa-expand"></i></button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div id="linegraph_chart" class="chart-container"></div>
+                                </div>
+                                <div class="card-footer text-muted small">
+                                    <span class="footerInfo">Footer info</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Right Sidebar -->
+        <div id="rightSidebar" class="col-12 col-md-4 col-lg-3 border-left sidebar-expanded">
+            <div class="sidebar-header d-flex justify-content-between align-items-center">
+                <p class="mb-0">Infografika</p>
+                <div class="ml-auto">
+                    <button id="toggleBtn" class="btn btn-sm btn-outline-secondary mr-1" title="Pause">
+                        <i id="toggleIcon" class="fas fa-pause"></i>
+                    </button>
+                    <button id="closeSidebarBtn" class="btn btn-sm btn-outline-secondary" title="Close">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
             </div>
-
-            <!-- Card Grid -->
-            <div class="row h-100">
-                <!-- Card 1 -->
-                <div class="col-12 col-md-6 col-lg-4 mb-4 d-flex">
-                    <div class="card flex-fill card-full shadow-sm">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0">Viloyatlar va tumanlar kesimida narxlar darajasi</h6>
-                            <div class="btn-group btn-group-sm">
-                                <button class="btn btn-outline-secondary"><i class="fas fa-sync-alt"></i></button>
-                                <button class="btn btn-outline-secondary"><i class="fas fa-cog"></i></button>
-                                <button id="fullscreenBtn" class="btn btn-outline-secondary"><i
-                                        class="fas fa-expand"></i></button>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div id="map_chart" class="chart-container"></div>
-                        </div>
-                        <div class="card-footer text-muted small">
-                            <span class="footerInfo">Footer info</span>
-                        </div>
-                    </div>
+            <div class="sidebar-body">
+                <div id="right-sidebar-product">
+                    <div class="picker-list"></div>
+                    <div class="picker-highlight"></div>
+                    
                 </div>
+                <div id="pctChangeTable" class="right-bar-extra-info"></div>
+                <div id="regionInsights" class="right-bar-insights"></div> <!-- NEW -->
+                <div id="regionSummary" class="right-bar-region-summary"></div>
+            </div>
+            <div class="sidebar-footer">
 
-                <!-- Card 2 -->
-                <div class="col-12 col-md-6 col-lg-4 mb-4 d-flex">
-                    <div class="card flex-fill card-full shadow-sm">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0">Hududlar kesimida narxlar dinamikasi</h6>
-                            <div class="btn-group btn-group-sm">
-                                <button class="btn btn-outline-secondary"><i class="fas fa-sync-alt"></i></button>
-                                <button class="btn btn-outline-secondary"><i class="fas fa-cog"></i></button>
-                                <button id="fullscreenBtnRegion" class="btn btn-outline-secondary"><i
-                                        class="fas fa-expand"></i></button>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div id="region_chart" class="chart-container"></div>
-                        </div>
-                        <div class="card-footer text-muted small">
-                            <span class="footerInfo">Footer info</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Card 3 -->
-                <div class="col-12 col-md-6 col-lg-4 mb-4 d-flex">
-                    <div class="card flex-fill card-full shadow-sm">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0">Hududlar kesimida stacked column chart</h6>
-                            <div class="btn-group btn-group-sm">
-                                <button class="btn btn-outline-secondary"><i class="fas fa-sync-alt"></i></button>
-                                <button class="btn btn-outline-secondary"><i class="fas fa-cog"></i></button>
-                                <button id="fullscreenBtnStackedColumn" class="btn btn-outline-secondary">
-                                    <i class="fas fa-expand"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <!-- ✅ Container for stacked column chart -->
-                            <div id="stacked_column_chart" class="chart-container"></div>
-                        </div>
-                        <div class="card-footer text-muted small">
-                            <span class="footerInfo">Footer info</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Card 4 -->
-                <div class="col-12 col-md-6 col-lg-4 mb-4 d-flex">
-                    <div class="card flex-fill card-full shadow-sm">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0">Mahsulotlar kesimida narxlar dinamikasi</h6>
-                            <div class="btn-group btn-group-sm">
-                                <button class="btn btn-outline-secondary"><i class="fas fa-sync-alt"></i></button>
-                                <button class="btn btn-outline-secondary"><i class="fas fa-cog"></i></button>
-                                <button id="fullscreenBtnProduct" class="btn btn-outline-secondary"><i
-                                        class="fas fa-expand"></i></button>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div id="product_chart" class="chart-container"></div>
-                        </div>
-                        <div class="card-footer text-muted small">
-                            <span class="footerInfo">Footer info</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Card 5 -->
-                <div class="col-12 col-md-6 col-lg-4 mb-4 d-flex">
-                    <div class="card flex-fill card-full shadow-sm">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0">Tumanlar kesimida narxlar dinamikasi</h6>
-                            <div class="btn-group btn-group-sm">
-                                <button class="btn btn-outline-secondary"><i class="fas fa-sync-alt"></i></button>
-                                <button class="btn btn-outline-secondary"><i class="fas fa-cog"></i></button>
-                                <button id="fullscreenBtnDistrict" class="btn btn-outline-secondary"><i
-                                        class="fas fa-expand"></i></button>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div id="district_chart" class="chart-container"></div>
-                        </div>
-                        <div class="card-footer text-muted small">
-                            <span class="footerInfo">Footer info</span>
-                        </div>
-
-                    </div>
-                </div>
-
-                <!-- Card 6 -->
-                <div class="col-12 col-md-6 col-lg-4 mb-4 d-flex">
-                    <div class="card flex-fill card-full shadow-sm">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0">Hududlar kesimida narx oʻzgarishlari dinamikasi</h6>
-                            <div class="btn-group btn-group-sm">
-                                <button class="btn btn-outline-secondary"><i class="fas fa-sync-alt"></i></button>
-                                <button class="btn btn-outline-secondary"><i class="fas fa-cog"></i></button>
-                                <button id="fullscreenBtnLinegraph" class="btn btn-outline-secondary"><i
-                                        class="fas fa-expand"></i></button>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div id="linegraph_chart" class="chart-container"></div>
-                        </div>
-                        <div class="card-footer text-muted small">
-                            <span class="footerInfo">Footer info</span>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
-    </main>
+
+    </div>
 </div>
+
+<!-- Toggle Button -->
+<button id="openSidebarBtn" class="btn btn-primary sidebar-toggle">
+    <i class="fas fa-info-circle"></i> Ma'lumot
+</button>
 
 
 <!-- CSS card -->
@@ -292,6 +678,15 @@
     .card-full {
       height: 50vh; /* each card fills half the screen height */
     }
+    .row {
+  margin-left: -0.25rem;   /* reduce default gutter */
+  margin-right: -0.25rem;
+}
+.row > [class*="col-"] {
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+}
+
 </style>
 
 <!--chart styles-->
@@ -588,7 +983,27 @@
     });
 </script>
 <!--carousel script-->
+<!--right sidebar script-->
+<script>
+    const sidebar = document.getElementById("rightSidebar");
+const mainContent = document.getElementById("mainContentWrapper");
 
+document.getElementById("openSidebarBtn").addEventListener("click", () => {
+    sidebar.classList.remove("sidebar-collapsed");
+    sidebar.classList.add("sidebar-expanded");
+    mainContent.classList.remove("col-12");
+    mainContent.classList.add("col-md-8", "col-lg-9");
+});
+
+document.getElementById("closeSidebarBtn").addEventListener("click", () => {
+    sidebar.classList.remove("sidebar-expanded");
+    sidebar.classList.add("sidebar-collapsed");
+    mainContent.classList.remove("col-md-8", "col-lg-9");
+    mainContent.classList.add("col-12");
+});
+</script>
+<script src="{% static 'widgets/right_sidebar.js' %}"></script>
+<!--right sidebar script-->
 
 {% endblock main %}
 
@@ -740,4 +1155,7 @@
 <!--        }-->
 <!--    })();-->
 <!--</script>-->
+
+
+
 

@@ -112,6 +112,21 @@ class UploadPermission(models.Model):
 
 
 # Create your models here.
+
+
+class District(models.Model):
+    district_id = models.AutoField(primary_key=True)
+    district_name_cyrillic = models.CharField(max_length=255)
+    district_name_latin = models.CharField(max_length=255)
+
+    class Meta:
+        db_table = "district"
+        verbose_name = "District"
+        verbose_name_plural = "Districts"
+
+    def __str__(self):
+        return self.district_name_latin
+
 class Region(models.Model):
     region_id = models.AutoField(primary_key=True)
     region_name_cyrillic = models.CharField(max_length=255)
@@ -131,21 +146,6 @@ class Region(models.Model):
 
     def __str__(self):
         return self.region_name_latin
-
-
-class District(models.Model):
-    district_id = models.AutoField(primary_key=True)
-    district_name_cyrillic = models.CharField(max_length=255)
-    district_name_latin = models.CharField(max_length=255)
-
-    class Meta:
-        db_table = "district"
-        verbose_name = "District"
-        verbose_name_plural = "Districts"
-
-    def __str__(self):
-        return self.district_name_latin
-
 
 class Product(models.Model):
     product_id = models.AutoField(primary_key=True)

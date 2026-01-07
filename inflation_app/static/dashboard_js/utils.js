@@ -72,13 +72,14 @@ async function updateAllCharts(newFilters = {}, options = {}) {
   try {
     currentFilters = { ...currentFilters, ...newFilters };
 
-    const dashboardData = options.dashboardData || await fetchDashboardData(currentFilters);
+    const dashboardData =
+      options.dashboardData || await fetchDashboardData(currentFilters);
 
     if (!options.skipInterfaceText && dashboardData.interface_text) {
       currentInterfaceText = dashboardData.interface_text;
     }
 
-    // ✅ Always refresh footer info after currentInterfaceText is set/retained
+    // ✅ Always refresh footer info
     updateFooterInfo();
 
     if (dashboardData.global_metadata?.date_options_interface) {
@@ -89,15 +90,24 @@ async function updateAllCharts(newFilters = {}, options = {}) {
       );
     }
 
+    // -------------------- MAP HANDLING --------------------
     if (!options.skipMap && dashboardData.charts?.map_heatmap?.data) {
       if (!isInDrilldown) {
-        renderMapHeatmap(dashboardData.charts.map_heatmap.data, currentInterfaceText);
+        // Top-level map render
+        renderMapHeatmap(
+          dashboardData.charts.map_heatmap.data,
+          currentInterfaceText
+        );
       } else {
+        // -------------------- DRILLDOWN MAP UPDATE --------------------
         const mapResult = dashboardData.charts.map_heatmap;
+
         const districtData = mapChart.series[0].data.map(point => {
           const match = mapResult.data.find(d =>
-            d.district_name_latin?.trim().toLowerCase() === point.name.trim().toLowerCase()
+            d.district_name_latin?.trim().toLowerCase() ===
+            point.name.trim().toLowerCase()
           );
+
           return {
             ...point.options,
             value: match ? match.price : null,
@@ -105,15 +115,41 @@ async function updateAllCharts(newFilters = {}, options = {}) {
           };
         });
 
+        // ✅ APPLY PRICE SCALING FOR DRILLDOWN
+        const values = districtData
+          .map(d => d.value)
+          .filter(v => v !== null && v !== undefined);
+
+        if (values.length) {
+          let minVal = Math.min(...values);
+          let maxVal = Math.max(...values);
+
+          // Prevent flat color scale
+          if (minVal === maxVal) {
+            minVal *= 0.99;
+            maxVal *= 1.01;
+          }
+
+          mapChart.colorAxis[0].update(
+            { min: minVal, max: maxVal },
+            false // defer redraw
+          );
+        }
+
         mapChart.series[0].setData(districtData);
-        const productName = currentInterfaceText?.product_name_latin || "Unknown product";
-        const formattedDate = currentInterfaceText?.date_visual || "";
+
+        const productName =
+          currentInterfaceText?.product_name_latin || "Unknown product";
+        const formattedDate =
+          currentInterfaceText?.date_visual || "";
+
         mapChart.setSubtitle({
           text: `${productName} — ${formattedDate} — ${mapChart.series[0].name}`
         });
       }
     }
 
+    // -------------------- OTHER CHARTS --------------------
     if (dashboardData.charts?.product_chart?.data) {
       renderProductCharts(dashboardData.charts.product_chart.data);
     }
