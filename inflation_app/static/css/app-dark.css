@@ -66,9 +66,81 @@ body {
   font-size: 0.875rem;
   font-weight: 400;
   line-height: 1.5;
-  color: #ced4da;
+  color: #e0e0e0;       /* softer white from carousel */
   text-align: left;
-  background-color: #212529; }
+  background-color: #121212; /* dark terminal background */
+}
+/* Base body styles */
+body {
+  background-color: #121212 !important; /* carousel dark background */
+  color: #e0e0e0 !important;           /* softer white text */
+  font-family: "Overpass", sans-serif;
+}
+
+/* Override Bootstrap text utilities */
+.text-muted {
+  color: #bbbbbb !important; /* match carousel product-name */
+}
+
+.text-light {
+  color: #e0e0e0 !important;
+}
+
+/* Navbar */
+.navbar {
+  background-color: #1f1f1f !important; /* carousel track background */
+  color: #e0e0e0 !important;
+  border-bottom: 1px solid #333;
+}
+
+/* Cards, dropdowns, modals */
+.card,
+.dropdown-menu,
+.modal-content {
+  background-color: #1f1f1f !important;
+  color: #e0e0e0 !important;
+  border: 1px solid #333;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+
+/* Buttons */
+.btn-dark {
+  background-color: #1f1f1f !important;
+  color: #e0e0e0 !important;
+  border: 1px solid #333;
+}
+
+.btn-dark:hover {
+  background-color: #333 !important;
+}
+
+
+/* Remove extra spacing inside and below navbar */
+.navbar {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+  padding-top: 0 !important;   /* optional if you want a tighter navbar */
+  border-bottom: none !important; /* remove Bootstrap border if present */
+  box-shadow: none !important;    /* remove Bootstrap shadow if present */
+}
+
+/* Ensure wrapper doesn't add spacing */
+#navbarWrapper,
+.wrapper {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Make sure the next section (carousel/ticker) starts flush */
+.ticker-wrap,
+.carousel {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+
+
+
 
 [tabindex="-1"]:focus:not(:focus-visible) {
   outline: 0 !important; }
@@ -12044,3 +12116,113 @@ a.uppy-Dashboard-poweredBy {
     font-size: 35px;
     top: -10px;
     right: -35px; } }
+
+
+/* Dark theme variables */
+body {
+  --bg-color: #1e1e1e;
+  --text-color: #ddd;
+  --highlight-bg: rgba(76, 175, 80, 0.2); /* translucent green highlight */
+  --highlight-border: #4caf50;
+}
+
+/* Positive/Negative text colors */
+.positive { color: #4caf50; }
+.negative { color: #f44336; }
+
+/* Shared layout styles (same as light) */
+.card-full {
+  display: flex;
+  flex-direction: column;
+  height: 50vh;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.card-full .card-body {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  padding: 0.5rem;
+}
+
+.chart-container {
+  flex: 1;
+  width: 100%;
+  min-height: 300px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.card-footer {
+  flex-shrink: 0;
+  color: var(--text-color);
+}
+
+.product-header,
+.region-header,
+.district-header {
+  background: var(--bg-color);
+  color: var(--text-color);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  font-weight: bold;
+  margin-bottom: 8px;
+  padding-top: 10px;
+}
+
+.product-row.active-row,
+.region-row.active-row,
+.district-row.active-row {
+  background-color: var(--highlight-bg);
+  border: 2px solid var(--highlight-border);
+}
+
+.product-row,
+.region-row,
+.district-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  padding: 4px 0;
+  color: var(--text-color);
+}
+
+.product-row > div,
+.region-row > div,
+.district-row > div {
+  flex: 1;
+  text-align: center;
+  color: var(--text-color);
+}
+
+.product-row .sparkline {
+  flex: 2;
+  height: 40px;
+}
+
+/* Fullscreen styling */
+#product_chart:fullscreen,
+#region_chart:fullscreen,
+#district_chart:fullscreen,
+#product_chart:-webkit-full-screen,
+#region_chart:-webkit-full-screen,
+#district_chart:-webkit-full-screen {
+  background: #1e1e1e !important;
+  color: #ddd !important;
+  padding: 1rem;
+  overflow: auto;
+}
+
+/* Responsive tweaks */
+@media (max-width: 1024px) {
+  .card-full {
+    height: auto;
+    min-height: 300px;
+  }
+  .chart-container {
+    min-height: 200px;
+  }
+}

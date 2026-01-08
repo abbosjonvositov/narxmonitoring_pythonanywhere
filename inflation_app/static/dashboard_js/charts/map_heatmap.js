@@ -171,7 +171,6 @@ function renderMapHeatmap(apiData, interfaceText = {}) {
       let minValue = Math.min(...values);
       let maxValue = Math.max(...values);
 
-      // Prevent flat scale
       if (minValue === maxValue) {
         minValue *= 0.99;
         maxValue *= 1.01;
@@ -182,47 +181,61 @@ function renderMapHeatmap(apiData, interfaceText = {}) {
 
       if (typeof Highcharts !== "undefined") {
         setTimeout(() => {
+          const styles = getComputedStyle(document.body);
+          const bgColor = styles.getPropertyValue("--bg-color").trim();
+          const textColor = styles.getPropertyValue("--text-color").trim();
+
+          // ✅ Theme‑aware heatmap colors
+          const modeSwitcher = document.getElementById("modeSwitcher");
+          const mode = modeSwitcher ? modeSwitcher.dataset.mode : "light";
+
+          const minColor = mode === "dark" ? "#2c2c2c" : "#E6E7E8";
+          const maxColor = mode === "dark" ? "#4caf50" : "#005645";
+          const legendBg = mode === "dark" ? "#2c2c2c" : "#FFFFFF";
+
           if (!mapChart) {
             mapChart = Highcharts.mapChart(containerId, {
               chart: {
-                events: {
-                  drilldown: drilldownHandler
-                },
-                styledMode: false
+                events: { drilldown: drilldownHandler },
+                styledMode: false,
+                backgroundColor: "transparent"
               },
               title: { text: '' },
               subtitle: {
-                text: `${productName} — ${formattedDate}`
+                text: `${productName} — ${formattedDate}`,
+                style: { color: textColor }
               },
-              exporting: {
-                buttons: { contextButton: { enabled: false } }
-              },
+              exporting: { buttons: { contextButton: { enabled: false } } },
               colorAxis: {
                 min: minValue,
                 max: maxValue,
-                minColor: '#E6E7E8',
-                maxColor: '#005645'
+                minColor: minColor,
+                maxColor: maxColor
               },
               legend: {
                 layout: 'horizontal',
                 align: 'center',
                 verticalAlign: 'bottom',
-                backgroundColor: '#FFFFFF',
+                backgroundColor: legendBg,
                 symbolWidth: 300,
                 title: {
                   text: 'Narx darajasi',
-                  style: { fontSize: '12px' }
-                }
+                  style: { fontSize: '12px', color: textColor }
+                },
+                itemStyle: { color: textColor }
               },
               mapNavigation: {
                 enabled: true,
                 buttonOptions: { verticalAlign: 'bottom' }
               },
               plotOptions: {
-                map: {
-                  states: { hover: { color: '#EEDD66' } }
-                }
-              },
+                  map: {
+                    borderColor: "#444",   // soft grey border for dark mode
+                    borderWidth: 0.5,      // thin line
+                    states: { hover: { color: "#66bb6a" } }
+                  }
+                },
+
               credits: { enabled: false },
               series: [{
                 data,
@@ -235,29 +248,26 @@ function renderMapHeatmap(apiData, interfaceText = {}) {
                   style: {
                     fontSize: '14px',
                     fontWeight: 'bold',
-                    textOutline: '1px black'
+                    color: textColor,
+                    textOutline: 'none' // ✅ remove harsh outline
                   }
                 }
               }],
               drilldown: {
                 breadcrumbs: { position: { align: 'right' } },
                 activeDataLabelStyle: {
-                  color: '#FFFFFF',
+                  color: textColor,
                   textDecoration: 'none',
-                  textOutline: '1px #000000'
+                  textOutline: 'none'
                 }
               }
             });
 
-            // -------------------- ✅ DRILL-UP HANDLING --------------------
             Highcharts.addEvent(mapChart, 'drillup', function () {
               isInDrilldown = false;
               currentFilters.region_id = null;
               currentFilters.district_id = null;
-
-              setTimeout(() => {
-                updateAllCharts(currentFilters);
-              }, 0);
+              setTimeout(() => { updateAllCharts(currentFilters); }, 0);
             });
 
             const fullscreenBtn = document.getElementById('fullscreenBtn');
@@ -269,13 +279,14 @@ function renderMapHeatmap(apiData, interfaceText = {}) {
           } else {
             mapChart.series[0].setData(data);
             mapChart.setSubtitle({
-              text: `${productName} — ${formattedDate}`
+              text: `${productName} — ${formattedDate}`,
+              style: { color: textColor }
             });
-
-            // ✅ Update color scale on refresh
             mapChart.colorAxis[0].update({
               min: minValue,
-              max: maxValue
+              max: maxValue,
+              minColor: minColor,
+              maxColor: maxColor
             });
           }
 

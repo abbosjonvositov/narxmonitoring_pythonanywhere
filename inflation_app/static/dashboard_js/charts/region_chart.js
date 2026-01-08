@@ -47,11 +47,7 @@ function renderRegionChart(regions) {
   container.innerHTML = "";
   showLoader(containerId);
 
-  // ✅ Shared column sizing
-  const COL_FLEX = {
-    text: "1",
-    bar: "0 0 130px"
-  };
+  const COL_FLEX = { text: "1", bar: "0 0 130px" };
 
   setTimeout(() => {
     // compute pct_change for each region
@@ -80,7 +76,6 @@ function renderRegionChart(regions) {
     headerRow.style.marginBottom = "8px";
     headerRow.style.position = "sticky";
     headerRow.style.top = "0";
-    headerRow.style.background = "#fff";
     headerRow.style.zIndex = "10";
     headerRow.style.paddingTop = "10px";
     headerRow.style.width = "100%";
@@ -96,7 +91,6 @@ function renderRegionChart(regions) {
     headers.forEach((h, idx) => {
       const cell = document.createElement("div");
       cell.style.flex = idx === 4 ? COL_FLEX.bar : COL_FLEX.text;
-      cell.style.minWidth = "0";               // ✅ allow shrink
       cell.style.textAlign = "center";
       cell.textContent = h.label;
 
@@ -141,15 +135,9 @@ function renderRegionChart(regions) {
         updateMapDrilldown(region.region_id);
       });
 
-      // ---- Region name (safe for long text) ----
       const nameEl = document.createElement("div");
       nameEl.style.flex = COL_FLEX.text;
-      nameEl.style.minWidth = "0";              // ✅ CRITICAL
-      nameEl.style.whiteSpace = "nowrap";
-      nameEl.style.overflow = "hidden";
-      nameEl.style.textOverflow = "ellipsis";
       nameEl.style.textAlign = "center";
-      nameEl.title = region.name;               // full name on hover
       nameEl.textContent = region.name;
       row.appendChild(nameEl);
 
@@ -169,7 +157,7 @@ function renderRegionChart(regions) {
       pctEl.style.flex = COL_FLEX.text;
       pctEl.style.textAlign = "center";
       pctEl.textContent = formatPercent(pctChange);
-      pctEl.style.color = pctChange >= 0 ? "green" : "red";
+      pctEl.classList.add(pctChange >= 0 ? "positive" : "negative");
       row.appendChild(pctEl);
 
       const barEl = document.createElement("div");
@@ -182,7 +170,7 @@ function renderRegionChart(regions) {
       container.appendChild(row);
 
       Highcharts.chart(barEl, {
-        chart: { type: "bar", height: 60, backgroundColor: "#fff" },
+        chart: { type: "bar", height: 60, backgroundColor: "transparent" },
         title: { text: "" },
         credits: { enabled: false },
         exporting: { enabled: false },

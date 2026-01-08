@@ -23,7 +23,7 @@
 
 
 <!-- Existing navbar -->
-<nav class="navbar navbar-expand-lg navbar-light bg-white flex-row border-bottom shadow">
+<nav class="navbar navbar-expand-lg flex-row border-bottom shadow">
     <div class="container-fluid">
         <a class="navbar-brand d-flex align-items-center mx-lg-1 mr-0"
            href="{% url 'landing_page' %}">
@@ -38,6 +38,7 @@
         <button class="navbar-toggler mt-2 mr-auto toggle-sidebar text-muted">
             <i class="fe fe-menu navbar-toggler-icon"></i>
         </button>
+
         <div class="navbar-slide bg-white ml-lg-4" id="navbarSupportedContent">
             <a href="#" class="btn toggle-sidebar d-lg-none text-muted ml-2 mt-3" data-toggle="toggle">
                 <i class="fe fe-x"><span class="sr-only"></span></i>
@@ -47,6 +48,13 @@
         </div>
 
         <ul class="navbar-nav d-flex flex-row">
+            <li class="nav-item">
+                <a class="nav-link text-muted my-2" href="./#" id="modeSwitcher" data-mode="dark">
+                    <i class="fe fe-moon fe-16"></i>
+                </a>
+
+            </li>
+
             <li class="nav-item dropdown ml-lg-0">
                 <a class="nav-link dropdown-toggle text-muted" href="#" id="navbarDropdownMenuLink" role="button"
                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -81,10 +89,3 @@
     </div>
 </nav>
 
-<div id="navbarWrapper" class="transition-wrapper">
-    <nav class="navbar navbar-expand-lg navbar-light bg-white flex-row border-bottom shadow">
-        <div class="container-fluid">
-            <!-- your existing navbar content -->
-        </div>
-    </nav>
-</div>

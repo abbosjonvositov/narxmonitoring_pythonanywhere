@@ -690,103 +690,145 @@
 </style>
 
 <!--chart styles-->
-<style>
-    /* ✅ Card layout */
-    .card-full {
-      display: flex;
-      flex-direction: column;
-      height: 50vh;              /* card fills half viewport height */
-      padding: 10px;
-      box-sizing: border-box;
-    }
+<!--<style>-->
+<!--  /* ✅ Theme variables */-->
+<!--  body.light {-->
+<!--    &#45;&#45;bg-color: #fff;-->
+<!--    &#45;&#45;text-color: #000;-->
+<!--    &#45;&#45;highlight-bg: #e0f7fa;   /* light teal highlight */-->
+<!--    &#45;&#45;highlight-border: #005645;-->
+<!--  }-->
 
-    /* ✅ Card body flexes between header and footer */
-    .card-full .card-body {
-      flex: 1;
-      display: flex;
-      overflow: hidden;
-      padding: 0.5rem;
-    }
+<!--  body.dark {-->
+<!--    &#45;&#45;bg-color: #1e1e1e;-->
+<!--    &#45;&#45;text-color: #ddd;-->
+<!--    &#45;&#45;highlight-bg: rgba(76, 175, 80, 0.2); /* translucent green highlight */-->
+<!--    &#45;&#45;highlight-border: #4caf50;            /* bright green border for visibility */-->
+<!--  }-->
 
-    /* ✅ Chart container */
-    .chart-container {
-      flex: 1;
-      width: 100%;
-      min-height: 300px;         /* ensures visible height */
-      overflow-y: auto;          /* scroll vertically if content exceeds */
-      overflow-x: hidden;
-    }
+<!--  /* ✅ Positive/Negative text colors */-->
+<!--  body.light .positive { color: green; }-->
+<!--  body.light .negative { color: red; }-->
 
-    /* ✅ Footer stays pinned at bottom */
-    .card-footer {
-      flex-shrink: 0;
-    }
+<!--  body.dark .positive { color: #4caf50; }-->
+<!--  body.dark .negative { color: #f44336; }-->
 
-    /* ✅ Table headers (sticky) */
-    .product-header,
-    .region-header,
-    .district-header {
-      background: #fff;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      display: flex;
-      font-weight: bold;
-      margin-bottom: 8px;
-      padding-top: 10px;
-    }
+<!--  /* ✅ Card layout */-->
+<!--  .card-full {-->
+<!--    display: flex;-->
+<!--    flex-direction: column;-->
+<!--    height: 50vh;              /* card fills half viewport height */-->
+<!--    padding: 10px;-->
+<!--    box-sizing: border-box;-->
+<!--  }-->
 
-    /* ✅ Active row highlight (shared) */
-    .product-row.active-row,
-    .region-row.active-row,
-    .district-row.active-row {
-      background-color: #e0f7fa; /* light teal highlight */
-      border: 2px solid #005645;
-    }
+<!--  /* ✅ Card body flexes between header and footer */-->
+<!--  .card-full .card-body {-->
+<!--    flex: 1;-->
+<!--    display: flex;-->
+<!--    overflow: hidden;-->
+<!--    padding: 0.5rem;-->
+<!--  }-->
 
-    /* ✅ Row layouts */
-    .product-row,
-    .region-row,
-    .district-row {
-      display: flex;
-      align-items: center;
-      margin-bottom: 8px;
-      padding: 4px 0;
-    }
-    .product-row > div,
-    .region-row > div,
-    .district-row > div {
-      flex: 1;
-      text-align: center;
-    }
+<!--  /* ✅ Chart container */-->
+<!--  .chart-container {-->
+<!--    flex: 1;-->
+<!--    width: 100%;-->
+<!--    min-height: 300px;         /* ensures visible height */-->
+<!--    overflow-y: auto;          /* scroll vertically if content exceeds */-->
+<!--    overflow-x: hidden;-->
+<!--  }-->
 
-    /* ✅ Sparkline cell */
-    .product-row .sparkline {
-      flex: 2;
-      height: 40px;
-    }
+<!--  /* ✅ Footer stays pinned at bottom */-->
+<!--  .card-footer {-->
+<!--    flex-shrink: 0;-->
+<!--    color: var(&#45;&#45;text-color);-->
+<!--  }-->
 
-    /* ✅ Fullscreen styling for charts */
-    #product_chart:fullscreen,
-    #region_chart:fullscreen,
-    #district_chart:fullscreen {
-      background: #fff;   /* force light background */
-      color: #000;        /* ensure text stays dark */
-      padding: 1rem;
-      overflow: auto;
-    }
+<!--  /* ✅ Table headers (sticky) */-->
+<!--  .product-header,-->
+<!--  .region-header,-->
+<!--  .district-header {-->
+<!--    background: var(&#45;&#45;bg-color);-->
+<!--    color: var(&#45;&#45;text-color);-->
+<!--    position: sticky;-->
+<!--    top: 0;-->
+<!--    z-index: 10;-->
+<!--    display: flex;-->
+<!--    font-weight: bold;-->
+<!--    margin-bottom: 8px;-->
+<!--    padding-top: 10px;-->
+<!--  }-->
 
-    /* ✅ Responsive tweaks for tablets */
-    @media (max-width: 1024px) {
-      .card-full {
-        height: auto;            /* let cards grow naturally on iPad */
-        min-height: 300px;
-      }
-      .chart-container {
-        min-height: 200px;
-      }
-    }
-</style>
+<!--  /* ✅ Active row highlight (shared) */-->
+<!--  .product-row.active-row,-->
+<!--  .region-row.active-row,-->
+<!--  .district-row.active-row {-->
+<!--    background-color: var(&#45;&#45;highlight-bg);-->
+<!--    border: 2px solid var(&#45;&#45;highlight-border);-->
+<!--  }-->
+
+<!--  /* ✅ Row layouts */-->
+<!--  .product-row,-->
+<!--  .region-row,-->
+<!--  .district-row {-->
+<!--    display: flex;-->
+<!--    align-items: center;-->
+<!--    margin-bottom: 8px;-->
+<!--    padding: 4px 0;-->
+<!--    color: var(&#45;&#45;text-color);-->
+<!--  }-->
+
+<!--  .product-row > div,-->
+<!--  .region-row > div,-->
+<!--  .district-row > div {-->
+<!--    flex: 1;-->
+<!--    text-align: center;-->
+<!--    color: var(&#45;&#45;text-color);-->
+<!--  }-->
+
+<!--  /* ✅ Sparkline cell */-->
+<!--  .product-row .sparkline {-->
+<!--    flex: 2;-->
+<!--    height: 40px;-->
+<!--  }-->
+
+<!--  /* ✅ Fullscreen styling for charts */-->
+<!--  body.light #product_chart:fullscreen,-->
+<!--  body.light #region_chart:fullscreen,-->
+<!--  body.light #district_chart:fullscreen,-->
+<!--  body.light #product_chart:-webkit-full-screen,-->
+<!--  body.light #region_chart:-webkit-full-screen,-->
+<!--  body.light #district_chart:-webkit-full-screen {-->
+<!--    background: #fff !important;-->
+<!--    color: #000 !important;-->
+<!--    padding: 1rem;-->
+<!--    overflow: auto;-->
+<!--  }-->
+
+<!--  body.dark #product_chart:fullscreen,-->
+<!--  body.dark #region_chart:fullscreen,-->
+<!--  body.dark #district_chart:fullscreen,-->
+<!--  body.dark #product_chart:-webkit-full-screen,-->
+<!--  body.dark #region_chart:-webkit-full-screen,-->
+<!--  body.dark #district_chart:-webkit-full-screen {-->
+<!--    background: #1e1e1e !important;-->
+<!--    color: #ddd !important;-->
+<!--    padding: 1rem;-->
+<!--    overflow: auto;-->
+<!--  }-->
+
+<!--  /* ✅ Responsive tweaks for tablets */-->
+<!--  @media (max-width: 1024px) {-->
+<!--    .card-full {-->
+<!--      height: auto;            /* let cards grow naturally on iPad */-->
+<!--      min-height: 300px;-->
+<!--    }-->
+<!--    .chart-container {-->
+<!--      min-height: 200px;-->
+<!--    }-->
+<!--  }-->
+<!--</style>-->
 <!--chart styles-->
 
 

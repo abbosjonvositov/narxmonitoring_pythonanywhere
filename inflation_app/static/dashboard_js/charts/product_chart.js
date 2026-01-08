@@ -108,10 +108,9 @@ function renderProductCharts(products) {
   showLoader(containerId);
 
   setTimeout(() => {
-    // ✅ Sort products based on currentSort state
     products = sortProducts(products, currentSort.column, currentSort.direction);
 
-    // ✅ Build header row
+    // ================= HEADER =================
     const headerRow = document.createElement("div");
     headerRow.className = "product-header";
     headerRow.style.display = "flex";
@@ -119,7 +118,6 @@ function renderProductCharts(products) {
     headerRow.style.marginBottom = "8px";
     headerRow.style.position = "sticky";
     headerRow.style.top = "0";
-    headerRow.style.background = "#fff";
     headerRow.style.zIndex = "10";
     headerRow.style.paddingTop = "10px";
 
@@ -154,7 +152,7 @@ function renderProductCharts(products) {
     });
     container.appendChild(headerRow);
 
-    // ✅ Build product rows
+    // ================= ROWS =================
     products.forEach(prod => {
       const changePct = prod.change_pct;
 
@@ -166,47 +164,40 @@ function renderProductCharts(products) {
       row.style.width = "100%";
       row.style.cursor = "pointer";
 
-      // Highlight active product
       if (String(currentFilters.product_id) === String(prod.product_id)) {
         row.classList.add("active-row");
       }
 
-      // ✅ Corrected click handler: only pass newFilters
       row.addEventListener("click", () => {
         const newFilters = { product_id: prod.product_id };
         updateAllCharts(newFilters);
       });
 
-      // Product name
       const nameEl = document.createElement("div");
       nameEl.style.flex = "1";
       nameEl.style.textAlign = "center";
       nameEl.textContent = prod.name;
       row.appendChild(nameEl);
 
-      // Current price
       const actualEl = document.createElement("div");
       actualEl.style.flex = "1";
       actualEl.style.textAlign = "center";
       actualEl.textContent = formatNumber(prod.actual);
       row.appendChild(actualEl);
 
-      // Previous price
       const prevEl = document.createElement("div");
       prevEl.style.flex = "1";
       prevEl.style.textAlign = "center";
       prevEl.textContent = formatNumber(prod.prev);
       row.appendChild(prevEl);
 
-      // Change %
       const changeEl = document.createElement("div");
       changeEl.style.flex = "1";
       changeEl.style.textAlign = "center";
       changeEl.textContent = `${changePct}%`;
-      changeEl.style.color = changePct >= 0 ? "green" : "red";
+      changeEl.classList.add(changePct >= 0 ? "positive" : "negative");
       row.appendChild(changeEl);
 
-      // Sparkline container
       const sparkEl = document.createElement("div");
       sparkEl.className = "sparkline";
       sparkEl.style.flex = "2";
@@ -215,7 +206,6 @@ function renderProductCharts(products) {
 
       container.appendChild(row);
 
-      // ✅ Sparkline chart
       const historyData = prod.history.map(h => [Date.parse(h.date), h.price]);
       const prices = prod.history.map(h => h.price);
       const minPrice = Math.min(...prices);
@@ -223,7 +213,7 @@ function renderProductCharts(products) {
       const padding = (maxPrice - minPrice) * 0.1 || 100;
 
       Highcharts.SparkLine(sparkEl, {
-        chart: { type: "area", height: 30 },
+        chart: { type: "area", height: 30, backgroundColor: "transparent" },
         xAxis: { type: "datetime", labels: { enabled: false } },
         yAxis: {
           min: minPrice - padding,
@@ -231,7 +221,7 @@ function renderProductCharts(products) {
           labels: { enabled: false },
           title: { text: null }
         },
-        series: [{ data: historyData }],
+        series: [{ data: historyData, color: "green" }],
         tooltip: {
           headerFormat: `<span style="font-size: 10px">${prod.name}</span><br/>`,
           pointFormatter: function () {

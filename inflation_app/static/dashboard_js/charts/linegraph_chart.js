@@ -6,29 +6,31 @@ function renderLinegraphChart(linegraphData) {
   showLoader(containerId);
 
   setTimeout(() => {
-    // ✅ Extract categories (dates) from the first series
     const categories = linegraphData.series[0].data.map(point => point[0]);
-
-    // ✅ Build series with only numeric values
     const seriesData = linegraphData.series.map(s => ({
       name: s.name,
       data: s.data.map(point => point[1])
     }));
 
-    // ✅ Build subtitle text from interfaceText
     const productName = currentInterfaceText?.product_name_latin || "Unknown product";
     const regionName = currentInterfaceText?.region_name_latin || "";
     const districtName = currentInterfaceText?.district_name_latin || "";
     const dateVisual = currentInterfaceText?.date_visual || "";
 
-    // Compose subtitle string dynamically
     let subtitleParts = [productName];
     if (regionName) subtitleParts.push(regionName);
     if (districtName) subtitleParts.push(districtName);
     if (dateVisual) subtitleParts.push(dateVisual);
     const subtitleText = subtitleParts.join(" — ");
 
+    const styles = getComputedStyle(document.body);
+    const bgColor = styles.getPropertyValue("--bg-color").trim();
+    const textColor = styles.getPropertyValue("--text-color").trim();
+
+    const chartColors = getChartPalette(seriesData.length);
+
     const chart = Highcharts.chart(containerId, {
+      colors: chartColors,
       chart: {
         type: "line",
         backgroundColor: "transparent",
@@ -36,38 +38,39 @@ function renderLinegraphChart(linegraphData) {
         events: {
           fullscreenOpen: function () {
             this.update({
-              chart: { backgroundColor: "#fff" },
-              xAxis: { labels: { style: { color: "#000" } } },
-              yAxis: { labels: { style: { color: "#000" } } }
+              chart: { backgroundColor: bgColor },
+              xAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } } },
+              yAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } } },
+              subtitle: { style: { color: textColor } },
+              legend: { itemStyle: { color: textColor } }
             });
           },
           fullscreenClose: function () {
             this.update({
-              chart: { backgroundColor: "transparent" }
+              chart: { backgroundColor: "transparent" },
+              xAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } } },
+              yAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } } },
+              subtitle: { style: { color: textColor } },
+              legend: { itemStyle: { color: textColor } }
             });
           }
         }
       },
-      title: {
-        text: ""
-      },
-      subtitle: {
-        text: subtitleText
-      },
+      title: { text: "" },
+      subtitle: { text: subtitleText, style: { color: textColor } },
       credits: { enabled: false },
       exporting: { enabled: false },
       xAxis: {
         categories: categories,
-        title: { text: "Sana" },
-        labels: { rotation: -45 }
+        title: { text: "Sana", style: { color: textColor } },
+        labels: { rotation: -45, style: { color: textColor } }
       },
       yAxis: {
         title: {
-          text:
-            currentInterfaceText?.data_type === "price"
-              ? "Price (so'm)"
-              : "Narx"
-        }
+          text: currentInterfaceText?.data_type === "price" ? "Price (so'm)" : "Narx",
+          style: { color: textColor }
+        },
+        labels: { style: { color: textColor } }
       },
       tooltip: {
         shared: true,
@@ -76,28 +79,26 @@ function renderLinegraphChart(linegraphData) {
           return this.points
             .slice()
             .sort((a, b) => b.y - a.y)
-            .map(p => {
-              return `
-                <span style="color:${p.series.color}">\u25CF</span>
-                <b>${p.series.name}</b>: ${Highcharts.numberFormat(p.y, 2, '.', ',')}
-              `;
-            })
+            .map(p => `
+              <span style="color:${p.series.color}">\u25CF</span>
+              <b>${p.series.name}</b>: ${Highcharts.numberFormat(p.y, 2, '.', ',')}
+            `)
             .join("<br/>");
         }
       },
       legend: {
-        enabled: false
+        enabled: false,
+        itemStyle: { color: textColor }
       },
       series: seriesData,
       plotOptions: {
         line: {
-          marker: { enabled: true },
+          marker: { enabled: false }, // ✅ marbles omitted
           dataLabels: { enabled: false }
         }
       }
     });
 
-    // ✅ Fullscreen toggle button
     const fullscreenBtn = document.getElementById("fullscreenBtnLinegraph");
     if (fullscreenBtn) {
       fullscreenBtn.addEventListener("click", () => {

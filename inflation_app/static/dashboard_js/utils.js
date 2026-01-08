@@ -1,4 +1,40 @@
 // utils.js
+// Map region_id from backend → hc-key used by Highcharts
+const hcKeyMap = {
+  1: "uz-qr",  // Qoraqalpog‘iston
+  2: "uz-an",  // Andijon
+  3: "uz-bu",  // Bukhoro
+  4: "uz-ji",  // Jizzakh
+  5: "uz-qa",  // Qashqadaryo
+  6: "uz-nw",  // Navoiy
+  7: "uz-ng",  // Namangan
+  8: "uz-sa",  // Samarqand
+  9: "uz-su",  // Surkhondaryo
+  10: "uz-si", // Sirdaryo
+  11: "uz-ta", // Toshkent viloyati
+  12: "uz-fa", // Farg‘ona
+  13: "uz-kh", // Khorazm
+  14: "uz-tk"  // Toshkent shahri
+};
+
+const drilldownFileMap = {
+  1: "qoraqalpogiston",
+  2: "andijon",
+  3: "bukhoro",
+  4: "jizzakh",
+  5: "qashqadaryo",
+  6: "navoiy",
+  7: "namangan",
+  8: "samarqand",
+  9: "surkhondaryo",
+  10: "sirdaryo",
+  11: "toshkent_viloyati",
+  12: "fargona",
+  13: "xorazm",
+  14: "toshkent_shahri"
+};
+
+
 async function fetchDashboardData(filters = {}) {
   // ✅ Only include non-null filterables in query string
   const cleanFilters = Object.fromEntries(
@@ -365,39 +401,65 @@ function updateFooterInfo() {
   });
 }
 
+const LIGHT_PALETTE = [
+  '#1976d2', // blue
+  '#388e3c', // green
+  '#f57c00', // orange
+  '#7b1fa2', // purple
+  '#0288d1', // cyan
+  '#c2185b', // pink
+  '#455a64', // grey
+  '#d32f2f', // red
+  '#009688', // teal
+  '#9e9d24', // olive
+  '#5d4037', // brown
+  '#303f9f', // indigo
+  '#00897b', // dark teal
+  '#e64a19', // deep orange
+  '#512da8', // deep purple
+  '#1976d2', // medium blue
+  '#afb42b', // lime
+  '#00796b', // jade
+  '#c62828', // crimson
+  '#8e24aa'  // violet
+];
+const DARK_PALETTE = [
+  '#64b5f6', // medium blue
+  '#81c784', // medium green
+  '#ffb74d', // warm orange
+  '#ba68c8', // medium purple
+  '#4dd0e1', // teal cyan
+  '#f06292', // rose pink
+  '#90a4ae', // muted grey
+  '#e57373', // soft red
+  '#4db6ac', // teal
+  '#dce775', // muted olive
+  '#a1887f', // brown
+  '#7986cb', // indigo
+  '#80cbc4', // pale teal
+  '#ffd54f', // amber
+  '#b39ddb', // violet
+  '#4fc3f7', // sky blue
+  '#aed581', // lime green
+  '#ff8a65', // coral
+  '#f48fb1', // rose
+  '#4db6ac'  // mint teal
+];
 
-// Map region_id from backend → hc-key used by Highcharts
-const hcKeyMap = {
-  1: "uz-qr",  // Qoraqalpog‘iston
-  2: "uz-an",  // Andijon
-  3: "uz-bu",  // Bukhoro
-  4: "uz-ji",  // Jizzakh
-  5: "uz-qa",  // Qashqadaryo
-  6: "uz-nw",  // Navoiy
-  7: "uz-ng",  // Namangan
-  8: "uz-sa",  // Samarqand
-  9: "uz-su",  // Surkhondaryo
-  10: "uz-si", // Sirdaryo
-  11: "uz-ta", // Toshkent viloyati
-  12: "uz-fa", // Farg‘ona
-  13: "uz-kh", // Khorazm
-  14: "uz-tk"  // Toshkent shahri
-};
 
-const drilldownFileMap = {
-  1: "qoraqalpogiston",
-  2: "andijon",
-  3: "bukhoro",
-  4: "jizzakh",
-  5: "qashqadaryo",
-  6: "navoiy",
-  7: "namangan",
-  8: "samarqand",
-  9: "surkhondaryo",
-  10: "sirdaryo",
-  11: "toshkent_viloyati",
-  12: "fargona",
-  13: "xorazm",
-  14: "toshkent_shahri"
-};
+function getChartPalette(count) {
+  const modeSwitcher = document.getElementById("modeSwitcher");
+  const mode = modeSwitcher ? modeSwitcher.dataset.mode : "light";
+  const basePalette = mode === "dark" ? DARK_PALETTE : LIGHT_PALETTE;
+
+  // Cycle through if more series than palette length
+  const colors = [];
+  for (let i = 0; i < count; i++) {
+    colors.push(basePalette[i % basePalette.length]);
+  }
+  return colors;
+}
+
+
+
 

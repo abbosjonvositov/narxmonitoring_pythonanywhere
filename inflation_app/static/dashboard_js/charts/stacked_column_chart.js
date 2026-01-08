@@ -8,18 +8,26 @@ function renderStackedColumnChart(columnData) {
   setTimeout(() => {
     const categories = columnData.categories;
     const seriesData = columnData.series;
-    const periodTotals = columnData.period_totals || []; // ✅ totals from endpoint
+    const periodTotals = columnData.period_totals || [];
 
     const productName = currentInterfaceText?.product_name_latin || "Unknown product";
     const dateVisual = currentInterfaceText?.date_visual || "";
 
-    // ✅ Only product name + date in subtitle
     let subtitleParts = [];
     if (productName) subtitleParts.push(productName);
     if (dateVisual) subtitleParts.push(dateVisual);
     const subtitleText = subtitleParts.join(" — ");
 
+    // ✅ Read theme colors from CSS variables
+    const styles = getComputedStyle(document.body);
+    const bgColor = styles.getPropertyValue("--bg-color").trim();
+    const textColor = styles.getPropertyValue("--text-color").trim();
+
+    // ✅ Use centralized palette
+    const chartColors = getChartPalette(seriesData.length);
+
     const chart = Highcharts.chart(containerId, {
+      colors: chartColors, // apply palette here
       chart: {
         type: "column",
         backgroundColor: "transparent",
@@ -27,52 +35,50 @@ function renderStackedColumnChart(columnData) {
         events: {
           fullscreenOpen: function () {
             this.update({
-              chart: { backgroundColor: "#fff" },
-              xAxis: { labels: { style: { color: "#000" } } },
-              yAxis: { labels: { style: { color: "#000" } } }
+              chart: { backgroundColor: bgColor },
+              xAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } } },
+              yAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } } },
+              subtitle: { style: { color: textColor } },
+              legend: { itemStyle: { color: textColor } }
             });
           },
           fullscreenClose: function () {
             this.update({
-              chart: { backgroundColor: "transparent" }
+              chart: { backgroundColor: "transparent" },
+              xAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } } },
+              yAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } } },
+              subtitle: { style: { color: textColor } },
+              legend: { itemStyle: { color: textColor } }
             });
           }
         }
       },
       title: { text: "" },
-      subtitle: { text: subtitleText },
+      subtitle: { text: subtitleText, style: { color: textColor } },
       credits: { enabled: false },
       exporting: { enabled: false },
       xAxis: {
         categories: categories,
-        title: { text: "Sana" },
-        labels: { rotation: -45 }
+        title: { text: "Sana", style: { color: textColor } },
+        labels: { rotation: -45, style: { color: textColor } }
       },
       yAxis: {
         min: 0,
-        title: {
-          text: "Foizda (%)" // ✅ Axis title updated
-        },
+        title: { text: "Foizda (%)", style: { color: textColor } },
         labels: {
-          formatter: function () {
-            return this.value + "%"; // ✅ Append % to axis labels
-          }
+          style: { color: textColor },
+          formatter: function () { return this.value + "%"; }
         },
         stackLabels: {
           enabled: true,
           formatter: function () {
-            // ✅ Use endpoint totals directly (already in %)
             const idx = this.x;
             if (periodTotals && periodTotals[idx] !== undefined) {
               return Highcharts.numberFormat(periodTotals[idx], 2) + "%";
             }
-            return this.total + "%"; // fallback if no endpoint value
+            return this.total + "%";
           },
-          style: {
-            fontWeight: "bold",
-            color: (Highcharts.defaultOptions.title.style &&
-              Highcharts.defaultOptions.title.style.color) || "gray"
-          }
+          style: { fontWeight: "bold", color: textColor }
         }
       },
       tooltip: {
@@ -89,23 +95,27 @@ function renderStackedColumnChart(columnData) {
             this.points
               .slice()
               .sort((a, b) => b.y - a.y)
-              .map(p => {
-                return `
-                  <span style="color:${p.series.color}">\u25CF</span>
-                  <b>${p.series.name}</b>: ${Highcharts.numberFormat(p.y, 2, '.', ',')}%
-                `;
-              })
+              .map(p => `
+                <span style="color:${p.series.color}">\u25CF</span>
+                <b>${p.series.name}</b>: ${Highcharts.numberFormat(p.y, 2, '.', ',')}%
+              `)
               .join("<br/>") + totalText
           );
         }
       },
       plotOptions: {
-        column: {
-          stacking: "normal",
-          dataLabels: { enabled: false }
-        }
+  column: {
+    stacking: "normal",
+    dataLabels: { enabled: false },
+    borderWidth: 0,
+    borderColor: "transparent"
+  }
+},
+
+      legend: {
+        enabled: false,
+        itemStyle: { color: textColor }
       },
-      legend: { enabled: false }, // ✅ Legend removed
       series: seriesData
     });
 
