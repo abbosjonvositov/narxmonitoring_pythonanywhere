@@ -10,7 +10,7 @@ function renderStackedColumnChart(columnData) {
     const seriesData = columnData.series;
     const periodTotals = columnData.period_totals || [];
 
-    const productName = currentInterfaceText?.product_name_latin || "Unknown product";
+    const productName = currentInterfaceText?.product_name_latin || gettext("Unknown product");
     const dateVisual = currentInterfaceText?.date_visual || "";
 
     let subtitleParts = [];
@@ -27,7 +27,7 @@ function renderStackedColumnChart(columnData) {
     const chartColors = getChartPalette(seriesData.length);
 
     const chart = Highcharts.chart(containerId, {
-      colors: chartColors, // apply palette here
+      colors: chartColors,
       chart: {
         type: "column",
         backgroundColor: "transparent",
@@ -36,8 +36,8 @@ function renderStackedColumnChart(columnData) {
           fullscreenOpen: function () {
             this.update({
               chart: { backgroundColor: bgColor },
-              xAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } } },
-              yAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } } },
+              xAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } }, gridLineWidth: 0 },
+              yAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } }, gridLineWidth: 0 },
               subtitle: { style: { color: textColor } },
               legend: { itemStyle: { color: textColor } }
             });
@@ -45,8 +45,8 @@ function renderStackedColumnChart(columnData) {
           fullscreenClose: function () {
             this.update({
               chart: { backgroundColor: "transparent" },
-              xAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } } },
-              yAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } } },
+              xAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } }, gridLineWidth: 0 },
+              yAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } }, gridLineWidth: 0 },
               subtitle: { style: { color: textColor } },
               legend: { itemStyle: { color: textColor } }
             });
@@ -59,16 +59,18 @@ function renderStackedColumnChart(columnData) {
       exporting: { enabled: false },
       xAxis: {
         categories: categories,
-        title: { text: "Sana", style: { color: textColor } },
-        labels: { rotation: -45, style: { color: textColor } }
+        title: { text: gettext("Sana"), style: { color: textColor } },
+        labels: { rotation: -45, style: { color: textColor } },
+        gridLineWidth: 0
       },
       yAxis: {
         min: 0,
-        title: { text: "Foizda (%)", style: { color: textColor } },
+        title: { text: gettext("Foizda (%)"), style: { color: textColor } },
         labels: {
           style: { color: textColor },
           formatter: function () { return this.value + "%"; }
         },
+        gridLineWidth: 0,
         stackLabels: {
           enabled: true,
           formatter: function () {
@@ -88,7 +90,7 @@ function renderStackedColumnChart(columnData) {
           const idx = this.points[0].point.index;
           const totalText =
             periodTotals && periodTotals[idx] !== undefined
-              ? `<br/><b>Total:</b> ${Highcharts.numberFormat(periodTotals[idx], 2)}%`
+              ? `<br/><b>${gettext("Total")}:</b> ${Highcharts.numberFormat(periodTotals[idx], 2)}%`
               : "";
 
           return (
@@ -104,14 +106,13 @@ function renderStackedColumnChart(columnData) {
         }
       },
       plotOptions: {
-  column: {
-    stacking: "normal",
-    dataLabels: { enabled: false },
-    borderWidth: 0,
-    borderColor: "transparent"
-  }
-},
-
+        column: {
+          stacking: "normal",
+          dataLabels: { enabled: false },
+          borderWidth: 0,
+          borderColor: "transparent"
+        }
+      },
       legend: {
         enabled: false,
         itemStyle: { color: textColor }

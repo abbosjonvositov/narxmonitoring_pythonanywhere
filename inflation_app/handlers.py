@@ -593,6 +593,11 @@ def linegraph_chart_handler(qs, params):
             return None
         return f"{date_obj.day} {MONTHS_UZ[date_obj.month]}, {date_obj.year}"
 
+    def format_date_ddmmyyyy(date_obj):
+        if not date_obj:
+            return None
+        return date_obj.strftime("%d.%m.%Y")
+
     def format_price(price):
         return round(float(price), 2) if price is not None else None
 
@@ -653,7 +658,7 @@ def linegraph_chart_handler(qs, params):
         return {
             "name": name,
             "data": [
-                [format_uzbek_date(w["date"]), format_price(w["avg_price"])]
+                [format_date_ddmmyyyy(w["date"]), format_price(w["avg_price"])]
                 for w in weekly_prices
             ]
         }
@@ -695,8 +700,8 @@ def linegraph_chart_handler(qs, params):
         "data": {
             "product_id": str(product_id),
             "weeks": WEEKS_IN_YEAR,
-            "start_date": format_uzbek_date(start_date),
-            "end_date": format_uzbek_date(end_date),
+            "start_date": format_date_ddmmyyyy(start_date),
+            "end_date": format_date_ddmmyyyy(end_date),
             "series": series,
         }
     }
@@ -718,6 +723,11 @@ def stacked_column_handler(qs, params):
         if not date_obj:
             return None
         return f"{date_obj.day} {MONTHS_UZ[date_obj.month]}, {date_obj.year}"
+
+    def format_date_ddmmyyyy(date_obj):
+        if not date_obj:
+            return None
+        return date_obj.strftime("%d.%m.%Y")
 
     def format_4dp(value):
         """Format to 4 decimal places"""
@@ -802,7 +812,7 @@ def stacked_column_handler(qs, params):
         # Only include non-zero periods
         if period_total != 0:
             valid_period_contributions.append(period_contributions)
-            date_labels.append(format_display_date(current_date))
+            date_labels.append(format_date_ddmmyyyy(current_date))
             period_totals.append(format_4dp(period_total))
 
     # -------------------- POPULATE SERIES --------------------

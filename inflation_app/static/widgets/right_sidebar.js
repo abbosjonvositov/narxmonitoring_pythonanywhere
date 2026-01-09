@@ -10,11 +10,9 @@ function getHeatmapColor(value, min, max) {
   const ratio = (value - min) / (max - min); // normalize between 0–1
 
   if (value > 0) {
-    // green gradient: light green → dark green
-    return `rgba(76, 175, 80, ${0.2 + ratio * 0.6})`;
+    return `rgba(76, 175, 80, ${0.2 + ratio * 0.6})`; // green gradient
   } else {
-    // red gradient: light red → dark red
-    return `rgba(244, 67, 54, ${0.2 + (1 - ratio) * 0.6})`;
+    return `rgba(244, 67, 54, ${0.2 + (1 - ratio) * 0.6})`; // red gradient
   }
 }
 
@@ -43,9 +41,9 @@ async function fetchProducts() {
       regions: p.regions
     }));
     renderTablePicker();
-    enableManualScroll(); // enable scroll after initial render
+    enableManualScroll();
   } catch (err) {
-    console.error("Error fetching products:", err);
+    console.error(gettext("Error fetching products:"), err);
   }
 }
 
@@ -61,7 +59,7 @@ function showExtraInfo(product) {
     let tableHTML = `
       <p>${product.name}</p>
       <table class="right-bar-performance-table">
-        <tr>${performance.map(p => `<th>${p.period}</th>`).join("")}</tr>
+        <tr>${performance.map(p => `<th>${gettext(p.period)}</th>`).join("")}</tr>
         <tr>${performance.map(p => {
           let cls = "right-bar-performance-neutral";
           if (p.change.pct > 0) cls = "right-bar-performance-positive";
@@ -72,7 +70,7 @@ function showExtraInfo(product) {
     `;
     infoBox.innerHTML = tableHTML;
   } else {
-    infoBox.innerHTML = "<p>No performance data available</p>";
+    infoBox.innerHTML = `<p>${gettext("No performance data available")}</p>`;
   }
 
   // --- Insights Section ---
@@ -96,24 +94,28 @@ function showExtraInfo(product) {
     insightsBox.innerHTML = `
       <p>${product.name}</p>
       <table class="right-bar-insights-table">
-        <tr><th>Koʻrsatkichlar</th><th>Hududlar</th><th>Qiymat</th></tr>
         <tr>
-          <td>Eng yuqori oʻsish (%)</td>
+          <th>${gettext("Koʻrsatkichlar")}</th>
+          <th>${gettext("Hududlar")}</th>
+          <th>${gettext("Qiymat")}</th>
+        </tr>
+        <tr>
+          <td>${gettext("Eng yuqori oʻsish (%)")}</td>
           <td>${highestIncrease.name}</td>
           <td class="insight-positive">${formatWithSpace(highestIncrease.change.pct)}%</td>
         </tr>
         <tr>
-          <td>Eng yuqori pasayish (%)</td>
+          <td>${gettext("Eng yuqori pasayish (%)")}</td>
           <td>${highestDecrease.name}</td>
           <td class="insight-negative">${formatWithSpace(highestDecrease.change.pct)}%</td>
         </tr>
         <tr>
-          <td>Eng qimmat</td>
+          <td>${gettext("Eng qimmat")}</td>
           <td>${mostExpensive.name}</td>
           <td class="insight-expensive">${formatWithSpace(mostExpensive.price)}</td>
         </tr>
         <tr>
-          <td>Eng arzon</td>
+          <td>${gettext("Eng arzon")}</td>
           <td>${cheapest.name}</td>
           <td class="insight-cheapest">${formatWithSpace(cheapest.price)}</td>
         </tr>
@@ -126,18 +128,11 @@ function showExtraInfo(product) {
     const maxChange = Math.max(...allChanges);
 
     function getRegionHeatmapColor(value, min, max) {
-      if (value === 0) return "rgba(153,153,153,0.2)"; // neutral gray
-
-      if (value > 0) {
-        const ratio = value / max; // normalize positive values
-        return `rgba(76, 175, 80, ${0.2 + ratio * 0.6})`;
-      } else {
-        const ratio = value / min; // normalize negative values
-        return `rgba(244, 67, 54, ${0.2 + ratio * 0.6})`;
-      }
+      if (value === 0) return "rgba(153,153,153,0.2)";
+      if (value > 0) return `rgba(76, 175, 80, ${0.2 + value / max * 0.6})`;
+      else return `rgba(244, 67, 54, ${0.2 + value / min * 0.6})`;
     }
 
-    // --- Region Summary with heatmap ---
     let rowsHTML = product.regions.map(region => `
       <tr>
         <td title="${region.name}">${region.name}</td>
@@ -152,20 +147,20 @@ function showExtraInfo(product) {
       <p>${product.name}</p>
       <table class="right-bar-region-table">
         <tr>
-          <th>Hududlar</th>
-          <th>1W</th>
-          <th>1M</th>
-          <th>3M</th>
-          <th>6M</th>
-          <th>YTD</th>
-          <th>1Y</th>
+          <th>${gettext("Hududlar")}</th>
+          <th>${gettext("1W")}</th>
+          <th>${gettext("1M")}</th>
+          <th>${gettext("3M")}</th>
+          <th>${gettext("6M")}</th>
+          <th>${gettext("YTD")}</th>
+          <th>${gettext("1Y")}</th>
         </tr>
         ${rowsHTML}
       </table>
     `;
   } else {
-    insightsBox.innerHTML = "<p>No regional insights available</p>";
-    regionBox.innerHTML = "<p>No region data available</p>";
+    insightsBox.innerHTML = `<p>${gettext("No regional insights available")}</p>`;
+    regionBox.innerHTML = `<p>${gettext("No region data available")}</p>`;
   }
 }
 
@@ -173,7 +168,7 @@ function showExtraInfo(product) {
 function renderTablePicker() {
   const container = document.getElementById("right-sidebar-product");
   if (!products || products.length === 0) {
-    container.innerHTML = "<p>Loading products...</p>";
+    container.innerHTML = `<p>${gettext("Loading products...")}</p>`;
     return;
   }
 
@@ -197,12 +192,11 @@ function renderTablePicker() {
     </div>
   `;
 
-  // Attach click listeners for manual selection
   document.querySelectorAll(".table-picker-row").forEach(row => {
     row.addEventListener("click", () => {
       const index = parseInt(row.getAttribute("data-index"), 10);
       activeIndex = index;
-      stopTicker(); // pause auto-scroll when user clicks
+      stopTicker();
       updateTablePicker();
     });
   });
@@ -214,14 +208,11 @@ function renderTablePicker() {
 function updateTablePicker() {
   const list = document.querySelector(".table-picker-list");
   const itemHeight = 40;
-  // shift so activeIndex aligns with middle slot (row 3 of 5)
   const offset = -(activeIndex * itemHeight) + (itemHeight * 2);
   list.style.transform = `translateY(${offset}px)`;
 
   const rows = document.querySelectorAll(".table-picker-row");
-  rows.forEach((el, i) => {
-    el.classList.toggle("active", i === activeIndex);
-  });
+  rows.forEach((el, i) => el.classList.toggle("active", i === activeIndex));
 
   if (products[activeIndex]) {
     showExtraInfo(products[activeIndex]);
@@ -235,25 +226,21 @@ function scrollTicker() {
   updateTablePicker();
 }
 
-// --- Manual scroll with mouse wheel ---
+// --- Manual scroll ---
 function enableManualScroll() {
   const list = document.querySelector(".table-picker-list");
   if (!list) return;
 
   list.addEventListener("wheel", (event) => {
-    event.preventDefault(); // prevent default page scroll
+    event.preventDefault();
     if (!products || products.length === 0) return;
 
-    if (event.deltaY > 0) {
-      // scroll down → next product
-      activeIndex = (activeIndex + 1) % products.length;
-    } else {
-      // scroll up → previous product
-      activeIndex = (activeIndex - 1 + products.length) % products.length;
-    }
-    stopTicker(); // auto-pause on manual interaction
+    if (event.deltaY > 0) activeIndex = (activeIndex + 1) % products.length;
+    else activeIndex = (activeIndex - 1 + products.length) % products.length;
+
+    stopTicker();
     updateTablePicker();
-  }, { passive: false }); // ensure preventDefault works
+  }, { passive: false });
 }
 
 // --- Ticker controls ---
@@ -282,23 +269,18 @@ document.addEventListener("DOMContentLoaded", () => {
   if (toggleBtn && icon) {
     toggleBtn.addEventListener("click", () => {
       if (isPaused) {
-        // Resume ticker
         startTicker();
         icon.classList.remove("fa-play");
         icon.classList.add("fa-pause");
-        toggleBtn.title = "Pause";
+        toggleBtn.title = gettext("Pause");
       } else {
-        // Pause ticker
         stopTicker();
         icon.classList.remove("fa-pause");
         icon.classList.add("fa-play");
-        toggleBtn.title = "Resume";
+        toggleBtn.title = gettext("Resume");
       }
     });
   }
 
-  // Start ticker once DOM is ready
   startTicker();
 });
-
-

@@ -81,11 +81,11 @@ function renderRegionChart(regions) {
     headerRow.style.width = "100%";
 
     const headers = [
-      { label: "Viloyat nomi", key: "name" },
-      { label: "Joriy narx", key: "actual" },
-      { label: "Avvalgi narx", key: "prev" },
-      { label: "O'zgarish %", key: "pct_change" },
-      { label: "Nominal o'zgarish (so'm)", key: null }
+      { label: gettext("Viloyat nomi"), key: "name" },
+      { label: gettext("Joriy narx"), key: "actual" },
+      { label: gettext("Avvalgi narx"), key: "prev" },
+      { label: gettext("O'zgarish %"), key: "pct_change" },
+      { label: gettext("Nominal o'zgarish (so'm)"), key: null }
     ];
 
     headers.forEach((h, idx) => {
@@ -138,6 +138,10 @@ function renderRegionChart(regions) {
       const nameEl = document.createElement("div");
       nameEl.style.flex = COL_FLEX.text;
       nameEl.style.textAlign = "center";
+      nameEl.style.textOverflow = "ellipsis";
+      nameEl.style.overflow = "hidden";
+      nameEl.style.whiteSpace = "nowrap";
+      nameEl.title = region.name;
       nameEl.textContent = region.name;
       row.appendChild(nameEl);
 
@@ -158,6 +162,7 @@ function renderRegionChart(regions) {
       pctEl.style.textAlign = "center";
       pctEl.textContent = formatPercent(pctChange);
       pctEl.classList.add(pctChange >= 0 ? "positive" : "negative");
+      pctEl.title = pctChange >= 0 ? gettext("Ijobiy o'zgarish") : gettext("Salbiy o'zgarish");
       row.appendChild(pctEl);
 
       const barEl = document.createElement("div");
@@ -188,7 +193,7 @@ function renderRegionChart(regions) {
           color: nominalChange >= 0 ? "green" : "red"
         }],
         tooltip: {
-          pointFormat: `<b>{point.y}</b> nominal change`
+          pointFormat: `<b>{point.y}</b> ${gettext("Nominal o'zgarish")}`
         },
         plotOptions: {
           series: {

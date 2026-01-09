@@ -1,0 +1,217 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-01-09 20:31+0500\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+#: inflation_app/admin.py:232
+msgid "You do not have permission to replace products."
+msgstr ""
+
+#: inflation_app/admin.py:246
+msgid "Cannot replace with itself."
+msgstr ""
+
+#: inflation_app/admin.py:269
+#, python-format
+msgid "%(count)d price records moved/merged. Product replaced successfully."
+msgstr ""
+
+#: inflation_app/admin.py:280
+#: inflation_app/templates/admin/inflation_app/product/replace_product.html:17
+msgid "Replace product"
+msgstr ""
+
+#: inflation_app/templates/admin/inflation_app/district/change_form.html:9
+msgid "Replace with another district"
+msgstr ""
+
+#: inflation_app/templates/admin/inflation_app/district/replace_district.html:7
+msgid "Replace district"
+msgstr ""
+
+#: inflation_app/templates/admin/inflation_app/district/replace_district.html:11
+#: inflation_app/templates/admin/inflation_app/product/replace_product.html:22
+#: inflation_app/templates/admin/inflation_app/region/replace_region.html:11
+msgid "will be permanently replaced."
+msgstr ""
+
+#: inflation_app/templates/admin/inflation_app/district/replace_district.html:13
+#: inflation_app/templates/admin/inflation_app/region/replace_region.html:13
+msgid "All related price observations will be reassigned."
+msgstr ""
+
+#: inflation_app/templates/admin/inflation_app/district/replace_district.html:14
+msgid "This district record will then be deleted."
+msgstr ""
+
+#: inflation_app/templates/admin/inflation_app/district/replace_district.html:16
+#: inflation_app/templates/admin/inflation_app/product/replace_product.html:29
+#: inflation_app/templates/admin/inflation_app/region/replace_region.html:16
+msgid "This action cannot be undone."
+msgstr ""
+
+#: inflation_app/templates/admin/inflation_app/district/replace_district.html:24
+#: inflation_app/templates/admin/inflation_app/region/replace_region.html:24
+msgid "Confirm replacement"
+msgstr ""
+
+#: inflation_app/templates/admin/inflation_app/district/replace_district.html:27
+#: inflation_app/templates/admin/inflation_app/product/replace_product.html:43
+#: inflation_app/templates/admin/inflation_app/region/replace_region.html:27
+msgid "Cancel"
+msgstr ""
+
+#: inflation_app/templates/admin/inflation_app/product/change_form.html:11
+msgid "Replace with another product"
+msgstr ""
+
+#: inflation_app/templates/admin/inflation_app/product/replace_product.html:6
+msgid "Home"
+msgstr ""
+
+#: inflation_app/templates/admin/inflation_app/product/replace_product.html:10
+msgid "Replace"
+msgstr ""
+
+#: inflation_app/templates/admin/inflation_app/product/replace_product.html:25
+msgid ""
+"All related price observations will be reassigned to the selected product."
+msgstr ""
+
+#: inflation_app/templates/admin/inflation_app/product/replace_product.html:26
+msgid "This product record will then be deleted."
+msgstr ""
+
+#: inflation_app/templates/admin/inflation_app/product/replace_product.html:36
+msgid "Select replacement product"
+msgstr ""
+
+#: inflation_app/templates/admin/inflation_app/product/replace_product.html:41
+msgid "✅ Confirm replacement"
+msgstr ""
+
+#: inflation_app/templates/admin/inflation_app/region/change_form.html:9
+msgid "Replace with another region"
+msgstr ""
+
+#: inflation_app/templates/admin/inflation_app/region/replace_region.html:7
+msgid "Replace region"
+msgstr ""
+
+#: inflation_app/templates/admin/inflation_app/region/replace_region.html:14
+msgid "This region record will then be deleted."
+msgstr ""
+
+#: inflation_app/templates/landing_page.html:503
+msgid "Viloyatlar va tumanlar kesimida narxlar darajasi"
+msgstr ""
+
+#: inflation_app/templates/landing_page.html:505
+#: inflation_app/templates/landing_page.html:532
+#: inflation_app/templates/landing_page.html:559
+#: inflation_app/templates/landing_page.html:586
+#: inflation_app/templates/landing_page.html:613
+#: inflation_app/templates/landing_page.html:640
+msgid "Refresh"
+msgstr ""
+
+#: inflation_app/templates/landing_page.html:508
+#: inflation_app/templates/landing_page.html:535
+#: inflation_app/templates/landing_page.html:562
+#: inflation_app/templates/landing_page.html:589
+#: inflation_app/templates/landing_page.html:616
+#: inflation_app/templates/landing_page.html:643
+msgid "Settings"
+msgstr ""
+
+#: inflation_app/templates/landing_page.html:512
+#: inflation_app/templates/landing_page.html:539
+#: inflation_app/templates/landing_page.html:566
+#: inflation_app/templates/landing_page.html:593
+#: inflation_app/templates/landing_page.html:620
+#: inflation_app/templates/landing_page.html:647
+msgid "Fullscreen"
+msgstr ""
+
+#: inflation_app/templates/landing_page.html:521
+#: inflation_app/templates/landing_page.html:548
+#: inflation_app/templates/landing_page.html:575
+#: inflation_app/templates/landing_page.html:602
+#: inflation_app/templates/landing_page.html:629
+#: inflation_app/templates/landing_page.html:656
+msgid "Footer info"
+msgstr ""
+
+#: inflation_app/templates/landing_page.html:530
+msgid "Hududlar kesimida narxlar dinamikasi"
+msgstr ""
+
+#: inflation_app/templates/landing_page.html:557
+msgid "Hududlar kesimida stacked column chart"
+msgstr ""
+
+#: inflation_app/templates/landing_page.html:584
+msgid "Mahsulotlar kesimida narxlar dinamikasi"
+msgstr ""
+
+#: inflation_app/templates/landing_page.html:611
+msgid "Tumanlar kesimida narxlar dinamikasi"
+msgstr ""
+
+#: inflation_app/templates/landing_page.html:638
+msgid "Hududlar kesimida narx oʻzgarishlari dinamikasi"
+msgstr ""
+
+#: inflation_app/templates/landing_page.html:668
+msgid "Infografika"
+msgstr ""
+
+#: inflation_app/templates/landing_page.html:670
+msgid "Pause"
+msgstr ""
+
+#: inflation_app/templates/landing_page.html:673
+msgid "Close"
+msgstr ""
+
+#: inflation_app/templates/landing_page.html:694
+msgid "Ma'lumot"
+msgstr ""
+
+#: inflation_project/settings.py:156
+msgid "Oʻzbekcha"
+msgstr ""
+
+#: inflation_project/settings.py:157
+msgid "Ўзбекча"
+msgstr ""
+
+#: inflation_project/settings.py:158
+msgid "Русский"
+msgstr ""
+
+#: inflation_project/settings.py:159
+msgid "English"
+msgstr ""
+
+#: templates/components_base/_topnavbar.html:142
+msgid "Shaxsiy kabinet"
+msgstr ""
+
+#: templates/components_base/_topnavbar.html:148
+msgid "Chiqish"
+msgstr ""

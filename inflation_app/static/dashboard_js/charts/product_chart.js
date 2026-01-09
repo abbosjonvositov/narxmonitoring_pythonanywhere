@@ -122,11 +122,11 @@ function renderProductCharts(products) {
     headerRow.style.paddingTop = "10px";
 
     const headers = [
-      { label: "Mahsulot nomi", key: "name" },
-      { label: "Joriy narx", key: "actual" },
-      { label: "Avvalgi narx", key: "prev" },
-      { label: "O‘zgarish %", key: "change_pct" },
-      { label: "Trend", key: null }
+      { label: gettext("Mahsulot nomi"), key: "name" },
+      { label: gettext("Joriy narx"), key: "actual" },
+      { label: gettext("Avvalgi narx"), key: "prev" },
+      { label: gettext("O‘zgarish %"), key: "change_pct" },
+      { label: gettext("Trend"), key: null }
     ];
 
     headers.forEach((h, idx) => {
@@ -176,6 +176,10 @@ function renderProductCharts(products) {
       const nameEl = document.createElement("div");
       nameEl.style.flex = "1";
       nameEl.style.textAlign = "center";
+      nameEl.style.textOverflow = "ellipsis";
+      nameEl.style.overflow = "hidden";
+      nameEl.style.whiteSpace = "nowrap";
+      nameEl.title = prod.name;
       nameEl.textContent = prod.name;
       row.appendChild(nameEl);
 
@@ -196,6 +200,7 @@ function renderProductCharts(products) {
       changeEl.style.textAlign = "center";
       changeEl.textContent = `${changePct}%`;
       changeEl.classList.add(changePct >= 0 ? "positive" : "negative");
+      changeEl.title = changePct >= 0 ? gettext("Ijobiy o‘zgarish") : gettext("Salbiy o‘zgarish");
       row.appendChild(changeEl);
 
       const sparkEl = document.createElement("div");
@@ -214,18 +219,19 @@ function renderProductCharts(products) {
 
       Highcharts.SparkLine(sparkEl, {
         chart: { type: "area", height: 30, backgroundColor: "transparent" },
-        xAxis: { type: "datetime", labels: { enabled: false } },
+        xAxis: { type: "datetime", labels: { enabled: false }, gridLineWidth: 0 },
         yAxis: {
           min: minPrice - padding,
           max: maxPrice + padding,
           labels: { enabled: false },
-          title: { text: null }
+          title: { text: null },
+          gridLineWidth: 0
         },
         series: [{ data: historyData, color: "green" }],
         tooltip: {
           headerFormat: `<span style="font-size: 10px">${prod.name}</span><br/>`,
           pointFormatter: function () {
-            return `<b>${formatNumber(this.y)}</b> UZS<br/>${Highcharts.dateFormat('%e %b, %Y', this.x)}`;
+            return `<b>${formatNumber(this.y)}</b> ${gettext("UZS")}<br/>${Highcharts.dateFormat('%e %b, %Y', this.x)}`;
           },
           style: { zIndex: 9999 }
         }

@@ -6,13 +6,28 @@ function renderLinegraphChart(linegraphData) {
   showLoader(containerId);
 
   setTimeout(() => {
-    const categories = linegraphData.series[0].data.map(point => point[0]);
-    const seriesData = linegraphData.series.map(s => ({
-      name: s.name,
-      data: s.data.map(point => point[1])
-    }));
+    // ✅ Collect all unique dates across all series
+    let categories = [...new Set(
+      linegraphData.series.flatMap(s => s.data.map(point => point[0]))
+    )];
 
-    const productName = currentInterfaceText?.product_name_latin || "Unknown product";
+    // ✅ Sort categories chronologically
+    categories.sort((a, b) => {
+      const [da, ma, ya] = a.split(".");
+      const [db, mb, yb] = b.split(".");
+      return new Date(+ya, +ma - 1, +da) - new Date(+yb, +mb - 1, +db);
+    });
+
+    // ✅ Align each series to categories, fill missing with null
+    const seriesData = linegraphData.series.map(s => {
+      const dataMap = new Map(s.data.map(point => [point[0], point[1]]));
+      return {
+        name: s.name,
+        data: categories.map(date => dataMap.get(date) ?? null)
+      };
+    });
+
+    const productName = currentInterfaceText?.product_name_latin || gettext("Unknown product");
     const regionName = currentInterfaceText?.region_name_latin || "";
     const districtName = currentInterfaceText?.district_name_latin || "";
     const dateVisual = currentInterfaceText?.date_visual || "";
@@ -39,8 +54,8 @@ function renderLinegraphChart(linegraphData) {
           fullscreenOpen: function () {
             this.update({
               chart: { backgroundColor: bgColor },
-              xAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } } },
-              yAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } } },
+              xAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } }, gridLineWidth: 0 },
+              yAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } }, gridLineWidth: 0 },
               subtitle: { style: { color: textColor } },
               legend: { itemStyle: { color: textColor } }
             });
@@ -48,8 +63,8 @@ function renderLinegraphChart(linegraphData) {
           fullscreenClose: function () {
             this.update({
               chart: { backgroundColor: "transparent" },
-              xAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } } },
-              yAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } } },
+              xAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } }, gridLineWidth: 0 },
+              yAxis: { labels: { style: { color: textColor } }, title: { style: { color: textColor } }, gridLineWidth: 0 },
               subtitle: { style: { color: textColor } },
               legend: { itemStyle: { color: textColor } }
             });
@@ -62,15 +77,17 @@ function renderLinegraphChart(linegraphData) {
       exporting: { enabled: false },
       xAxis: {
         categories: categories,
-        title: { text: "Sana", style: { color: textColor } },
-        labels: { rotation: -45, style: { color: textColor } }
+        title: { text: gettext("Sana"), style: { color: textColor } },
+        labels: { rotation: -45, style: { color: textColor } },
+        gridLineWidth: 0
       },
       yAxis: {
         title: {
-          text: currentInterfaceText?.data_type === "price" ? "Price (so'm)" : "Narx",
+          text: currentInterfaceText?.data_type === "price" ? gettext("Price (so'm)") : gettext("Narx"),
           style: { color: textColor }
         },
-        labels: { style: { color: textColor } }
+        labels: { style: { color: textColor } },
+        gridLineWidth: 0
       },
       tooltip: {
         shared: true,
@@ -93,7 +110,7 @@ function renderLinegraphChart(linegraphData) {
       series: seriesData,
       plotOptions: {
         line: {
-          marker: { enabled: false }, // ✅ marbles omitted
+          marker: { enabled: false },
           dataLabels: { enabled: false }
         }
       }

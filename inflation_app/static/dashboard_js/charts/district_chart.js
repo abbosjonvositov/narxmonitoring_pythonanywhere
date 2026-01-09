@@ -75,11 +75,11 @@ function renderDistrictChart(districts) {
     headerRow.style.width = "100%";
 
     const headers = [
-      { label: "Tuman nomi", key: "name" },
-      { label: "Joriy narx", key: "actual" },
-      { label: "Avvalgi narx", key: "prev" },
-      { label: "O'zgarish %", key: "pct_change" },
-      { label: "Nominal o'zgarish (so'm)", key: null }
+      { label: gettext("Tuman nomi"), key: "name" },
+      { label: gettext("Joriy narx"), key: "actual" },
+      { label: gettext("Avvalgi narx"), key: "prev" },
+      { label: gettext("O'zgarish %"), key: "pct_change" },
+      { label: gettext("Nominal o'zgarish (so'm)"), key: null }
     ];
 
     headers.forEach((h, idx) => {
@@ -141,6 +141,10 @@ function renderDistrictChart(districts) {
       const nameEl = document.createElement("div");
       nameEl.style.flex = COL_FLEX.text;
       nameEl.style.textAlign = "center";
+      nameEl.style.textOverflow = "ellipsis";
+      nameEl.style.overflow = "hidden";
+      nameEl.style.whiteSpace = "nowrap";
+      nameEl.title = district.name;
       nameEl.textContent = district.name;
       row.appendChild(nameEl);
 
@@ -161,6 +165,7 @@ function renderDistrictChart(districts) {
       pctEl.style.textAlign = "center";
       pctEl.textContent = formatPercent(pctChange);
       pctEl.classList.add(pctChange >= 0 ? "positive" : "negative");
+      pctEl.title = pctChange >= 0 ? gettext("Ijobiy o'zgarish") : gettext("Salbiy o'zgarish");
       row.appendChild(pctEl);
 
       const barEl = document.createElement("div");
@@ -191,7 +196,7 @@ function renderDistrictChart(districts) {
           color: nominalChange >= 0 ? "green" : "red"
         }],
         tooltip: {
-          pointFormat: `<b>{point.y}</b> nominal change`
+          pointFormat: `<b>{point.y}</b> ${gettext("Nominal o'zgarish")}`
         },
         plotOptions: {
           series: {

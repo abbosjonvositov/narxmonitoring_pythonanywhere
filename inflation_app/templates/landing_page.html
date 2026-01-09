@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static i18n %}
+
 {% block main %}
 <style>
     .filter-chip {
@@ -473,6 +474,8 @@
 </style>
 
 
+{% load static i18n %}
+
 <div class="container-fluid">
     <div class="row">
         <!-- Main Content -->
@@ -497,20 +500,25 @@
                         <div class="col-12 col-md-6 col-lg-4 mb-3 d-flex">
                             <div class="card flex-fill card-full shadow-sm">
                                 <div class="card-header d-flex justify-content-between align-items-center">
-                                    <h6 class="mb-0">Viloyatlar va tumanlar kesimida narxlar darajasi</h6>
+                                    <h6 class="mb-0">{% trans "Viloyatlar va tumanlar kesimida narxlar darajasi" %}</h6>
                                     <div class="btn-group btn-group-sm">
-                                        <button class="btn btn-outline-secondary"><i class="fas fa-sync-alt"></i>
+                                        <button class="btn btn-outline-secondary" title="{% trans 'Refresh' %}">
+                                            <i class="fas fa-sync-alt"></i>
                                         </button>
-                                        <button class="btn btn-outline-secondary"><i class="fas fa-cog"></i></button>
-                                        <button id="fullscreenBtn" class="btn btn-outline-secondary"><i
-                                                class="fas fa-expand"></i></button>
+                                        <button class="btn btn-outline-secondary" title="{% trans 'Settings' %}">
+                                            <i class="fas fa-cog"></i>
+                                        </button>
+                                        <button id="fullscreenBtn" class="btn btn-outline-secondary"
+                                                title="{% trans 'Fullscreen' %}">
+                                            <i class="fas fa-expand"></i>
+                                        </button>
                                     </div>
                                 </div>
                                 <div class="card-body">
                                     <div id="map_chart" class="chart-container"></div>
                                 </div>
                                 <div class="card-footer text-muted small">
-                                    <span class="footerInfo">Footer info</span>
+                                    <span class="footerInfo">{% trans "Footer info" %}</span>
                                 </div>
                             </div>
                         </div>
@@ -519,20 +527,25 @@
                         <div class="col-12 col-md-6 col-lg-4 mb-3 d-flex">
                             <div class="card flex-fill card-full shadow-sm">
                                 <div class="card-header d-flex justify-content-between align-items-center">
-                                    <h6 class="mb-0">Hududlar kesimida narxlar dinamikasi</h6>
+                                    <h6 class="mb-0">{% trans "Hududlar kesimida narxlar dinamikasi" %}</h6>
                                     <div class="btn-group btn-group-sm">
-                                        <button class="btn btn-outline-secondary"><i class="fas fa-sync-alt"></i>
+                                        <button class="btn btn-outline-secondary" title="{% trans 'Refresh' %}">
+                                            <i class="fas fa-sync-alt"></i>
                                         </button>
-                                        <button class="btn btn-outline-secondary"><i class="fas fa-cog"></i></button>
-                                        <button id="fullscreenBtnRegion" class="btn btn-outline-secondary"><i
-                                                class="fas fa-expand"></i></button>
+                                        <button class="btn btn-outline-secondary" title="{% trans 'Settings' %}">
+                                            <i class="fas fa-cog"></i>
+                                        </button>
+                                        <button id="fullscreenBtnRegion" class="btn btn-outline-secondary"
+                                                title="{% trans 'Fullscreen' %}">
+                                            <i class="fas fa-expand"></i>
+                                        </button>
                                     </div>
                                 </div>
                                 <div class="card-body">
                                     <div id="region_chart" class="chart-container"></div>
                                 </div>
                                 <div class="card-footer text-muted small">
-                                    <span class="footerInfo">Footer info</span>
+                                    <span class="footerInfo">{% trans "Footer info" %}</span>
                                 </div>
                             </div>
                         </div>
@@ -541,20 +554,25 @@
                         <div class="col-12 col-md-6 col-lg-4 mb-3 d-flex">
                             <div class="card flex-fill card-full shadow-sm">
                                 <div class="card-header d-flex justify-content-between align-items-center">
-                                    <h6 class="mb-0">Hududlar kesimida stacked column chart</h6>
+                                    <h6 class="mb-0">{% trans "Hududlar kesimida stacked column chart" %}</h6>
                                     <div class="btn-group btn-group-sm">
-                                        <button class="btn btn-outline-secondary"><i class="fas fa-sync-alt"></i>
+                                        <button class="btn btn-outline-secondary" title="{% trans 'Refresh' %}">
+                                            <i class="fas fa-sync-alt"></i>
                                         </button>
-                                        <button class="btn btn-outline-secondary"><i class="fas fa-cog"></i></button>
-                                        <button id="fullscreenBtnStackedColumn" class="btn btn-outline-secondary"><i
-                                                class="fas fa-expand"></i></button>
+                                        <button class="btn btn-outline-secondary" title="{% trans 'Settings' %}">
+                                            <i class="fas fa-cog"></i>
+                                        </button>
+                                        <button id="fullscreenBtnStackedColumn" class="btn btn-outline-secondary"
+                                                title="{% trans 'Fullscreen' %}">
+                                            <i class="fas fa-expand"></i>
+                                        </button>
                                     </div>
                                 </div>
                                 <div class="card-body">
                                     <div id="stacked_column_chart" class="chart-container"></div>
                                 </div>
                                 <div class="card-footer text-muted small">
-                                    <span class="footerInfo">Footer info</span>
+                                    <span class="footerInfo">{% trans "Footer info" %}</span>
                                 </div>
                             </div>
                         </div>
@@ -563,20 +581,25 @@
                         <div class="col-12 col-md-6 col-lg-4 mb-3 d-flex">
                             <div class="card flex-fill card-full shadow-sm">
                                 <div class="card-header d-flex justify-content-between align-items-center">
-                                    <h6 class="mb-0">Mahsulotlar kesimida narxlar dinamikasi</h6>
+                                    <h6 class="mb-0">{% trans "Mahsulotlar kesimida narxlar dinamikasi" %}</h6>
                                     <div class="btn-group btn-group-sm">
-                                        <button class="btn btn-outline-secondary"><i class="fas fa-sync-alt"></i>
+                                        <button class="btn btn-outline-secondary" title="{% trans 'Refresh' %}">
+                                            <i class="fas fa-sync-alt"></i>
                                         </button>
-                                        <button class="btn btn-outline-secondary"><i class="fas fa-cog"></i></button>
-                                        <button id="fullscreenBtnProduct" class="btn btn-outline-secondary"><i
-                                                class="fas fa-expand"></i></button>
+                                        <button class="btn btn-outline-secondary" title="{% trans 'Settings' %}">
+                                            <i class="fas fa-cog"></i>
+                                        </button>
+                                        <button id="fullscreenBtnProduct" class="btn btn-outline-secondary"
+                                                title="{% trans 'Fullscreen' %}">
+                                            <i class="fas fa-expand"></i>
+                                        </button>
                                     </div>
                                 </div>
                                 <div class="card-body">
                                     <div id="product_chart" class="chart-container"></div>
                                 </div>
                                 <div class="card-footer text-muted small">
-                                    <span class="footerInfo">Footer info</span>
+                                    <span class="footerInfo">{% trans "Footer info" %}</span>
                                 </div>
                             </div>
                         </div>
@@ -585,20 +608,25 @@
                         <div class="col-12 col-md-6 col-lg-4 mb-3 d-flex">
                             <div class="card flex-fill card-full shadow-sm">
                                 <div class="card-header d-flex justify-content-between align-items-center">
-                                    <h6 class="mb-0">Tumanlar kesimida narxlar dinamikasi</h6>
+                                    <h6 class="mb-0">{% trans "Tumanlar kesimida narxlar dinamikasi" %}</h6>
                                     <div class="btn-group btn-group-sm">
-                                        <button class="btn btn-outline-secondary"><i class="fas fa-sync-alt"></i>
+                                        <button class="btn btn-outline-secondary" title="{% trans 'Refresh' %}">
+                                            <i class="fas fa-sync-alt"></i>
                                         </button>
-                                        <button class="btn btn-outline-secondary"><i class="fas fa-cog"></i></button>
-                                        <button id="fullscreenBtnDistrict" class="btn btn-outline-secondary"><i
-                                                class="fas fa-expand"></i></button>
+                                        <button class="btn btn-outline-secondary" title="{% trans 'Settings' %}">
+                                            <i class="fas fa-cog"></i>
+                                        </button>
+                                        <button id="fullscreenBtnDistrict" class="btn btn-outline-secondary"
+                                                title="{% trans 'Fullscreen' %}">
+                                            <i class="fas fa-expand"></i>
+                                        </button>
                                     </div>
                                 </div>
                                 <div class="card-body">
                                     <div id="district_chart" class="chart-container"></div>
                                 </div>
                                 <div class="card-footer text-muted small">
-                                    <span class="footerInfo">Footer info</span>
+                                    <span class="footerInfo">{% trans "Footer info" %}</span>
                                 </div>
                             </div>
                         </div>
@@ -607,20 +635,25 @@
                         <div class="col-12 col-md-6 col-lg-4 mb-3 d-flex">
                             <div class="card flex-fill card-full shadow-sm">
                                 <div class="card-header d-flex justify-content-between align-items-center">
-                                    <h6 class="mb-0">Hududlar kesimida narx oʻzgarishlari dinamikasi</h6>
+                                    <h6 class="mb-0">{% trans "Hududlar kesimida narx oʻzgarishlari dinamikasi" %}</h6>
                                     <div class="btn-group btn-group-sm">
-                                        <button class="btn btn-outline-secondary"><i class="fas fa-sync-alt"></i>
+                                        <button class="btn btn-outline-secondary" title="{% trans 'Refresh' %}">
+                                            <i class="fas fa-sync-alt"></i>
                                         </button>
-                                        <button class="btn btn-outline-secondary"><i class="fas fa-cog"></i></button>
-                                        <button id="fullscreenBtnLinegraph" class="btn btn-outline-secondary"><i
-                                                class="fas fa-expand"></i></button>
+                                        <button class="btn btn-outline-secondary" title="{% trans 'Settings' %}">
+                                            <i class="fas fa-cog"></i>
+                                        </button>
+                                        <button id="fullscreenBtnLinegraph" class="btn btn-outline-secondary"
+                                                title="{% trans 'Fullscreen' %}">
+                                            <i class="fas fa-expand"></i>
+                                        </button>
                                     </div>
                                 </div>
                                 <div class="card-body">
                                     <div id="linegraph_chart" class="chart-container"></div>
                                 </div>
                                 <div class="card-footer text-muted small">
-                                    <span class="footerInfo">Footer info</span>
+                                    <span class="footerInfo">{% trans "Footer info" %}</span>
                                 </div>
                             </div>
                         </div>
@@ -632,12 +665,12 @@
         <!-- Right Sidebar -->
         <div id="rightSidebar" class="col-12 col-md-4 col-lg-3 border-left sidebar-expanded">
             <div class="sidebar-header d-flex justify-content-between align-items-center">
-                <p class="mb-0">Infografika</p>
+                <p class="mb-0">{% trans "Infografika" %}</p>
                 <div class="ml-auto">
-                    <button id="toggleBtn" class="btn btn-sm btn-outline-secondary mr-1" title="Pause">
+                    <button id="toggleBtn" class="btn btn-sm btn-outline-secondary mr-1" title="{% trans 'Pause' %}">
                         <i id="toggleIcon" class="fas fa-pause"></i>
                     </button>
-                    <button id="closeSidebarBtn" class="btn btn-sm btn-outline-secondary" title="Close">
+                    <button id="closeSidebarBtn" class="btn btn-sm btn-outline-secondary" title="{% trans 'Close' %}">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -646,23 +679,19 @@
                 <div id="right-sidebar-product">
                     <div class="picker-list"></div>
                     <div class="picker-highlight"></div>
-                    
                 </div>
                 <div id="pctChangeTable" class="right-bar-extra-info"></div>
-                <div id="regionInsights" class="right-bar-insights"></div> <!-- NEW -->
+                <div id="regionInsights" class="right-bar-insights"></div>
                 <div id="regionSummary" class="right-bar-region-summary"></div>
             </div>
-            <div class="sidebar-footer">
-
-            </div>
+            <div class="sidebar-footer"></div>
         </div>
-
     </div>
 </div>
 
 <!-- Toggle Button -->
 <button id="openSidebarBtn" class="btn btn-primary sidebar-toggle">
-    <i class="fas fa-info-circle"></i> Ma'lumot
+    <i class="fas fa-info-circle"></i> {% trans "Ma'lumot" %}
 </button>
 
 
@@ -869,6 +898,7 @@
 </script>
 <!--loading animation-->
 
+<script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
 
 <!--script IMPORTS-->
 <script src="https://code.highcharts.com/maps/highmaps.js"></script>

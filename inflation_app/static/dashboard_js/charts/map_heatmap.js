@@ -176,7 +176,7 @@ function renderMapHeatmap(apiData, interfaceText = {}) {
         maxValue *= 1.01;
       }
 
-      const productName = interfaceText?.product_name_latin || 'Unknown product';
+      const productName = interfaceText?.product_name_latin || gettext("Unknown product");
       const formattedDate = interfaceText?.date_visual || '';
 
       if (typeof Highcharts !== "undefined") {
@@ -210,7 +210,10 @@ function renderMapHeatmap(apiData, interfaceText = {}) {
                 min: minValue,
                 max: maxValue,
                 minColor: minColor,
-                maxColor: maxColor
+                maxColor: maxColor,
+                labels: {
+                  style: { color: textColor }
+                }
               },
               legend: {
                 layout: 'horizontal',
@@ -219,7 +222,7 @@ function renderMapHeatmap(apiData, interfaceText = {}) {
                 backgroundColor: legendBg,
                 symbolWidth: 300,
                 title: {
-                  text: 'Narx darajasi',
+                  text: gettext("Narx darajasi"),
                   style: { fontSize: '12px', color: textColor }
                 },
                 itemStyle: { color: textColor }
@@ -229,19 +232,18 @@ function renderMapHeatmap(apiData, interfaceText = {}) {
                 buttonOptions: { verticalAlign: 'bottom' }
               },
               plotOptions: {
-                  map: {
-                    borderColor: "#444",   // soft grey border for dark mode
-                    borderWidth: 0.5,      // thin line
-                    states: { hover: { color: "#66bb6a" } }
-                  }
-                },
-
+                map: {
+                  borderColor: "#444",
+                  borderWidth: 0.5,
+                  states: { hover: { color: "#66bb6a" } }
+                }
+              },
               credits: { enabled: false },
               series: [{
                 data,
                 mapData: topology,
                 joinBy: 'hc-key',
-                name: 'Respublika',
+                name: gettext("Respublika"),
                 dataLabels: {
                   enabled: true,
                   format: '{point.name}',
@@ -249,7 +251,7 @@ function renderMapHeatmap(apiData, interfaceText = {}) {
                     fontSize: '14px',
                     fontWeight: 'bold',
                     color: textColor,
-                    textOutline: 'none' // ✅ remove harsh outline
+                    textOutline: 'none'
                   }
                 }
               }],
@@ -286,7 +288,10 @@ function renderMapHeatmap(apiData, interfaceText = {}) {
               min: minValue,
               max: maxValue,
               minColor: minColor,
-              maxColor: maxColor
+              maxColor: maxColor,
+              labels: {
+                style: { color: textColor }
+              }
             });
           }
 

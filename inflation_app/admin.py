@@ -19,19 +19,44 @@ class UploadPermissionAdmin(admin.ModelAdmin):
     get_allowed_groups.short_description = 'Allowed Groups'
 
 
+from django.contrib import admin
+from django.contrib import messages
+from django.db import connection, transaction
+from django.shortcuts import get_object_or_404, render
+from django.urls import path, reverse
+from django.utils.translation import gettext_lazy as _
+
+
+# Flush action for SQLite
+def flush_and_reset_sqlite(modeladmin, request, queryset):
+    """Universal SQLite flush + ID reset action"""
+    count = queryset.count()
+    table_name = modeladmin.model._meta.db_table
+    queryset.delete()
+
+    with connection.cursor() as cursor:
+        cursor.execute(f"DELETE FROM sqlite_sequence WHERE name='{table_name}'")
+
+    modeladmin.message_user(
+        request,
+        f"✅ Flushed {count} {modeladmin.model.__name__}. Table empty. Next ID=1.",
+        level=messages.SUCCESS
+    )
+
+
+flush_and_reset_sqlite.short_description = "⚠️ FLUSH ALL & RESET ID TO 1 (irreversible!)"
+
+
 @admin.register(Region)
 class RegionAdmin(admin.ModelAdmin):
     list_display = ("region_id", "region_name_latin", "region_name_cyrillic", "weights")
     search_fields = ("region_name_latin", "region_name_cyrillic")
+    actions = [flush_and_reset_sqlite]  # ✅ Added flush action
 
     def has_delete_permission(self, request, obj=None):
-        """
-        Allow deletion only when no specific object is passed (bulk delete from changelist).
-        Prevent deletion from the object detail page.
-        """
         if obj is None:
-            return True  # allow bulk delete
-        return False    # disallow delete from detail view
+            return True
+        return False
 
     def get_urls(self):
         urls = super().get_urls()
@@ -95,6 +120,7 @@ class RegionAdmin(admin.ModelAdmin):
 class DistrictAdmin(admin.ModelAdmin):
     list_display = ("district_id", "district_name_latin", "district_name_cyrillic")
     search_fields = ("district_name_latin", "district_name_cyrillic")
+    actions = [flush_and_reset_sqlite]  # ✅ Added flush action
 
     def has_delete_permission(self, request, obj=None):
         return False
@@ -132,26 +158,21 @@ class DistrictAdmin(admin.ModelAdmin):
                 else:
                     with transaction.atomic():
                         updated_count = 0
-                        # Loop through observations of the district being removed
                         for obs in PriceObservation.objects.filter(district=district_to_remove):
                             try:
-                                # Check if a conflicting observation already exists
                                 existing = PriceObservation.objects.get(
                                     district=target,
                                     product=obs.product,
                                     date=obs.date,
                                 )
-                                # Merge: update existing with new data
                                 existing.price = obs.price
                                 existing.save()
                                 obs.delete()
                             except PriceObservation.DoesNotExist:
-                                # No conflict → safe to reassign
                                 obs.district = target
                                 obs.save()
                             updated_count += 1
 
-                        # Delete old district after reassignment
                         district_to_remove.delete()
 
                     messages.success(
@@ -184,16 +205,12 @@ class DistrictAdmin(admin.ModelAdmin):
 class ProductAdmin(admin.ModelAdmin):
     list_display = ("product_id", "product_name_latin", "product_name_cyrillic")
     search_fields = ("product_name_latin", "product_name_cyrillic")
+    actions = [flush_and_reset_sqlite]  # ✅ Added flush action
 
     def has_delete_permission(self, request, obj=None):
-        # Disable default delete — use replace instead
         return False
 
     def get_urls(self):
-        """
-        Add a custom URL to present a 'replace' view per product.
-        Use <path:object_id> to match Django admin's object id format (string PKs supported).
-        """
         urls = super().get_urls()
         custom_urls = [
             path(
@@ -205,22 +222,12 @@ class ProductAdmin(admin.ModelAdmin):
         return custom_urls + urls
 
     def change_view(self, request, object_id, form_url="", extra_context=None):
-        """
-        Make the original object available to the template so we can render a "Replace" button.
-        """
         extra_context = extra_context or {}
         obj = self.get_object(request, object_id)
         extra_context["original"] = obj
         return super().change_view(request, object_id, form_url, extra_context)
 
     def replace_product_view(self, request, object_id):
-        """
-        View that:
-        - Validates permissions
-        - Shows form to pick target product
-        - Moves all PriceObservation FKs from source to target (merging duplicates)
-        - Deletes the source product
-        """
         if not self.has_change_permission(request):
             messages.error(request, _("You do not have permission to replace products."))
             return redirect(reverse("admin:inflation_app_product_changelist"))
@@ -240,26 +247,21 @@ class ProductAdmin(admin.ModelAdmin):
                 else:
                     with transaction.atomic():
                         updated_count = 0
-                        # Loop through observations of the product being removed
                         for obs in PriceObservation.objects.filter(product=product_to_remove):
                             try:
-                                # Check if a conflicting observation already exists
                                 existing = PriceObservation.objects.get(
                                     district=obs.district,
                                     product=target,
                                     date=obs.date,
                                 )
-                                # Merge: update existing with new data
                                 existing.price = obs.price
                                 existing.save()
                                 obs.delete()
                             except PriceObservation.DoesNotExist:
-                                # No conflict → safe to reassign
                                 obs.product = target
                                 obs.save()
                             updated_count += 1
 
-                        # Delete old product after reassignment
                         product_to_remove.delete()
 
                     messages.success(

@@ -12,4 +12,5 @@ urlpatterns = [
     path("api/latest-price-by-product/", LatestPriceByProductAPIView.as_view(), name="latest-price-by-product"),
     path("api/dashboard", DashboardAPIView.as_view(), name="dashboard"),
     path("api/products/performance/", ProductPerformanceView.as_view(), name="product-performance"),
+
 ]

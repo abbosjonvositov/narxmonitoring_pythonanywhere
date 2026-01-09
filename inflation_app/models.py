@@ -118,6 +118,8 @@ class District(models.Model):
     district_id = models.AutoField(primary_key=True)
     district_name_cyrillic = models.CharField(max_length=255)
     district_name_latin = models.CharField(max_length=255)
+    district_name_russian = models.CharField(max_length=255, null=True, blank=True)
+    district_name_english = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         db_table = "district"
@@ -127,10 +129,13 @@ class District(models.Model):
     def __str__(self):
         return self.district_name_latin
 
+
 class Region(models.Model):
     region_id = models.AutoField(primary_key=True)
     region_name_cyrillic = models.CharField(max_length=255)
     region_name_latin = models.CharField(max_length=255)
+    region_name_russian = models.CharField(max_length=255, null=True, blank=True)
+    region_name_english = models.CharField(max_length=255, null=True, blank=True)
     hc_key = models.CharField(max_length=255)
     weights = models.DecimalField(
         max_digits=12,
@@ -147,10 +152,13 @@ class Region(models.Model):
     def __str__(self):
         return self.region_name_latin
 
+
 class Product(models.Model):
     product_id = models.AutoField(primary_key=True)
     product_name_cyrillic = models.CharField(max_length=255)
     product_name_latin = models.CharField(max_length=255)
+    product_name_russian = models.CharField(max_length=255, null=True, blank=True)
+    product_name_english = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         db_table = "product"

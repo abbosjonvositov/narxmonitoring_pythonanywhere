@@ -1,0 +1,580 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-01-09 20:31+0500\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: inflation_app/static/dashboard_js/charts/district_chart.js:78
+msgid "Tuman nomi"
+msgstr ""
+
+#: inflation_app/static/dashboard_js/charts/district_chart.js:79
+#: inflation_app/static/dashboard_js/charts/product_chart.js:126
+#: inflation_app/static/dashboard_js/charts/region_chart.js:85
+msgid "Joriy narx"
+msgstr ""
+
+#: inflation_app/static/dashboard_js/charts/district_chart.js:80
+#: inflation_app/static/dashboard_js/charts/product_chart.js:127
+#: inflation_app/static/dashboard_js/charts/region_chart.js:86
+msgid "Avvalgi narx"
+msgstr ""
+
+#: inflation_app/static/dashboard_js/charts/district_chart.js:81
+#: inflation_app/static/dashboard_js/charts/region_chart.js:87
+msgid "O'zgarish %"
+msgstr ""
+
+#: inflation_app/static/dashboard_js/charts/district_chart.js:82
+#: inflation_app/static/dashboard_js/charts/region_chart.js:88
+msgid "Nominal o'zgarish (so'm)"
+msgstr ""
+
+#: inflation_app/static/dashboard_js/charts/district_chart.js:168
+#: inflation_app/static/dashboard_js/charts/region_chart.js:165
+msgid "Ijobiy o'zgarish"
+msgstr ""
+
+#: inflation_app/static/dashboard_js/charts/district_chart.js:168
+#: inflation_app/static/dashboard_js/charts/region_chart.js:165
+msgid "Salbiy o'zgarish"
+msgstr ""
+
+#: inflation_app/static/dashboard_js/charts/district_chart.js:199
+#: inflation_app/static/dashboard_js/charts/region_chart.js:196
+msgid "Nominal o'zgarish"
+msgstr ""
+
+#: inflation_app/static/dashboard_js/charts/linegraph_chart.js:30
+#: inflation_app/static/dashboard_js/charts/map_heatmap.js:179
+#: inflation_app/static/dashboard_js/charts/stacked_column_chart.js:13
+msgid "Unknown product"
+msgstr ""
+
+#: inflation_app/static/dashboard_js/charts/linegraph_chart.js:80
+#: inflation_app/static/dashboard_js/charts/stacked_column_chart.js:62
+msgid "Sana"
+msgstr ""
+
+#: inflation_app/static/dashboard_js/charts/linegraph_chart.js:86
+msgid "Price (so'm)"
+msgstr ""
+
+#: inflation_app/static/dashboard_js/charts/linegraph_chart.js:86
+msgid "Narx"
+msgstr ""
+
+#: inflation_app/static/dashboard_js/charts/map_heatmap.js:225
+msgid "Narx darajasi"
+msgstr ""
+
+#: inflation_app/static/dashboard_js/charts/map_heatmap.js:246
+msgid "Respublika"
+msgstr ""
+
+#: inflation_app/static/dashboard_js/charts/product_chart.js:125
+msgid "Mahsulot nomi"
+msgstr ""
+
+#: inflation_app/static/dashboard_js/charts/product_chart.js:128
+msgid "O‘zgarish %"
+msgstr ""
+
+#: inflation_app/static/dashboard_js/charts/product_chart.js:129
+msgid "Trend"
+msgstr ""
+
+#: inflation_app/static/dashboard_js/charts/product_chart.js:203
+msgid "Ijobiy o‘zgarish"
+msgstr ""
+
+#: inflation_app/static/dashboard_js/charts/product_chart.js:203
+msgid "Salbiy o‘zgarish"
+msgstr ""
+
+#: inflation_app/static/dashboard_js/charts/product_chart.js:234
+msgid "UZS"
+msgstr ""
+
+#: inflation_app/static/dashboard_js/charts/region_chart.js:84
+msgid "Viloyat nomi"
+msgstr ""
+
+#: inflation_app/static/dashboard_js/charts/stacked_column_chart.js:68
+msgid "Foizda (%)"
+msgstr ""
+
+#: inflation_app/static/dashboard_js/charts/stacked_column_chart.js:93
+msgid "Total"
+msgstr ""
+
+#: inflation_app/static/widgets/right_sidebar.js:46
+msgid "Error fetching products:"
+msgstr ""
+
+#: inflation_app/static/widgets/right_sidebar.js:73
+msgid "No performance data available"
+msgstr ""
+
+#: inflation_app/static/widgets/right_sidebar.js:98
+msgid "Koʻrsatkichlar"
+msgstr ""
+
+#: inflation_app/static/widgets/right_sidebar.js:99
+#: inflation_app/static/widgets/right_sidebar.js:150
+msgid "Hududlar"
+msgstr ""
+
+#: inflation_app/static/widgets/right_sidebar.js:100
+msgid "Qiymat"
+msgstr ""
+
+#: inflation_app/static/widgets/right_sidebar.js:103
+msgid "Eng yuqori oʻsish (%)"
+msgstr ""
+
+#: inflation_app/static/widgets/right_sidebar.js:108
+msgid "Eng yuqori pasayish (%)"
+msgstr ""
+
+#: inflation_app/static/widgets/right_sidebar.js:113
+msgid "Eng qimmat"
+msgstr ""
+
+#: inflation_app/static/widgets/right_sidebar.js:118
+msgid "Eng arzon"
+msgstr ""
+
+#: inflation_app/static/widgets/right_sidebar.js:151
+msgid "1W"
+msgstr ""
+
+#: inflation_app/static/widgets/right_sidebar.js:152
+msgid "1M"
+msgstr ""
+
+#: inflation_app/static/widgets/right_sidebar.js:153
+msgid "3M"
+msgstr ""
+
+#: inflation_app/static/widgets/right_sidebar.js:154
+msgid "6M"
+msgstr ""
+
+#: inflation_app/static/widgets/right_sidebar.js:155
+msgid "YTD"
+msgstr ""
+
+#: inflation_app/static/widgets/right_sidebar.js:156
+msgid "1Y"
+msgstr ""
+
+#: inflation_app/static/widgets/right_sidebar.js:162
+msgid "No regional insights available"
+msgstr ""
+
+#: inflation_app/static/widgets/right_sidebar.js:163
+msgid "No region data available"
+msgstr ""
+
+#: inflation_app/static/widgets/right_sidebar.js:171
+msgid "Loading products..."
+msgstr ""
+
+#: inflation_app/static/widgets/right_sidebar.js:275
+msgid "Pause"
+msgstr ""
+
+#: inflation_app/static/widgets/right_sidebar.js:280
+msgid "Resume"
+msgstr ""
+
+#: static/admin/js/SelectFilter2.js:41
+#, javascript-format
+msgid "Available %s"
+msgstr ""
+
+#: static/admin/js/SelectFilter2.js:47
+#, javascript-format
+msgid ""
+"This is the list of available %s. You may choose some by selecting them in "
+"the box below and then clicking the \"Choose\" arrow between the two boxes."
+msgstr ""
+
+#: static/admin/js/SelectFilter2.js:63
+#, javascript-format
+msgid "Type into this box to filter down the list of available %s."
+msgstr ""
+
+#: static/admin/js/SelectFilter2.js:68 static/admin/js/SelectFilter2.js:113
+msgid "Filter"
+msgstr ""
+
+#: static/admin/js/SelectFilter2.js:72
+msgid "Choose all"
+msgstr ""
+
+#: static/admin/js/SelectFilter2.js:72
+#, javascript-format
+msgid "Click to choose all %s at once."
+msgstr ""
+
+#: static/admin/js/SelectFilter2.js:78
+msgid "Choose"
+msgstr ""
+
+#: static/admin/js/SelectFilter2.js:80
+msgid "Remove"
+msgstr ""
+
+#: static/admin/js/SelectFilter2.js:86
+#, javascript-format
+msgid "Chosen %s"
+msgstr ""
+
+#: static/admin/js/SelectFilter2.js:92
+#, javascript-format
+msgid ""
+"This is the list of chosen %s. You may remove some by selecting them in the "
+"box below and then clicking the \"Remove\" arrow between the two boxes."
+msgstr ""
+
+#: static/admin/js/SelectFilter2.js:108
+#, javascript-format
+msgid "Type into this box to filter down the list of selected %s."
+msgstr ""
+
+#: static/admin/js/SelectFilter2.js:123
+msgid "Remove all"
+msgstr ""
+
+#: static/admin/js/SelectFilter2.js:123
+#, javascript-format
+msgid "Click to remove all chosen %s at once."
+msgstr ""
+
+#: static/admin/js/SelectFilter2.js:214
+#, javascript-format
+msgid "%s selected option not visible"
+msgid_plural "%s selected options not visible"
+msgstr[0] ""
+msgstr[1] ""
+
+#: static/admin/js/actions.js:67
+msgid "%(sel)s of %(cnt)s selected"
+msgid_plural "%(sel)s of %(cnt)s selected"
+msgstr[0] ""
+msgstr[1] ""
+
+#: static/admin/js/actions.js:161
+msgid ""
+"You have unsaved changes on individual editable fields. If you run an "
+"action, your unsaved changes will be lost."
+msgstr ""
+
+#: static/admin/js/actions.js:174
+msgid ""
+"You have selected an action, but you haven’t saved your changes to "
+"individual fields yet. Please click OK to save. You’ll need to re-run the "
+"action."
+msgstr ""
+
+#: static/admin/js/actions.js:175
+msgid ""
+"You have selected an action, and you haven’t made any changes on individual "
+"fields. You’re probably looking for the Go button rather than the Save "
+"button."
+msgstr ""
+
+#: static/admin/js/admin/DateTimeShortcuts.js:13
+#: static/admin/js/admin/DateTimeShortcuts.js:110
+msgid "Now"
+msgstr ""
+
+#: static/admin/js/admin/DateTimeShortcuts.js:14
+msgid "Midnight"
+msgstr ""
+
+#: static/admin/js/admin/DateTimeShortcuts.js:15
+msgid "6 a.m."
+msgstr ""
+
+#: static/admin/js/admin/DateTimeShortcuts.js:16
+msgid "Noon"
+msgstr ""
+
+#: static/admin/js/admin/DateTimeShortcuts.js:17
+msgid "6 p.m."
+msgstr ""
+
+#: static/admin/js/admin/DateTimeShortcuts.js:78
+#, javascript-format
+msgid "Note: You are %s hour ahead of server time."
+msgid_plural "Note: You are %s hours ahead of server time."
+msgstr[0] ""
+msgstr[1] ""
+
+#: static/admin/js/admin/DateTimeShortcuts.js:86
+#, javascript-format
+msgid "Note: You are %s hour behind server time."
+msgid_plural "Note: You are %s hours behind server time."
+msgstr[0] ""
+msgstr[1] ""
+
+#: static/admin/js/admin/DateTimeShortcuts.js:128
+msgid "Choose a Time"
+msgstr ""
+
+#: static/admin/js/admin/DateTimeShortcuts.js:158
+msgid "Choose a time"
+msgstr ""
+
+#: static/admin/js/admin/DateTimeShortcuts.js:175
+#: static/admin/js/admin/DateTimeShortcuts.js:333
+msgid "Cancel"
+msgstr ""
+
+#: static/admin/js/admin/DateTimeShortcuts.js:238
+#: static/admin/js/admin/DateTimeShortcuts.js:318
+msgid "Today"
+msgstr ""
+
+#: static/admin/js/admin/DateTimeShortcuts.js:255
+msgid "Choose a Date"
+msgstr ""
+
+#: static/admin/js/admin/DateTimeShortcuts.js:312
+msgid "Yesterday"
+msgstr ""
+
+#: static/admin/js/admin/DateTimeShortcuts.js:324
+msgid "Tomorrow"
+msgstr ""
+
+#: static/admin/js/calendar.js:11
+msgid "January"
+msgstr ""
+
+#: static/admin/js/calendar.js:12
+msgid "February"
+msgstr ""
+
+#: static/admin/js/calendar.js:13
+msgid "March"
+msgstr ""
+
+#: static/admin/js/calendar.js:14
+msgid "April"
+msgstr ""
+
+#: static/admin/js/calendar.js:15
+msgid "May"
+msgstr ""
+
+#: static/admin/js/calendar.js:16
+msgid "June"
+msgstr ""
+
+#: static/admin/js/calendar.js:17
+msgid "July"
+msgstr ""
+
+#: static/admin/js/calendar.js:18
+msgid "August"
+msgstr ""
+
+#: static/admin/js/calendar.js:19
+msgid "September"
+msgstr ""
+
+#: static/admin/js/calendar.js:20
+msgid "October"
+msgstr ""
+
+#: static/admin/js/calendar.js:21
+msgid "November"
+msgstr ""
+
+#: static/admin/js/calendar.js:22
+msgid "December"
+msgstr ""
+
+#: static/admin/js/calendar.js:25
+msgctxt "abbrev. month January"
+msgid "Jan"
+msgstr ""
+
+#: static/admin/js/calendar.js:26
+msgctxt "abbrev. month February"
+msgid "Feb"
+msgstr ""
+
+#: static/admin/js/calendar.js:27
+msgctxt "abbrev. month March"
+msgid "Mar"
+msgstr ""
+
+#: static/admin/js/calendar.js:28
+msgctxt "abbrev. month April"
+msgid "Apr"
+msgstr ""
+
+#: static/admin/js/calendar.js:29
+msgctxt "abbrev. month May"
+msgid "May"
+msgstr ""
+
+#: static/admin/js/calendar.js:30
+msgctxt "abbrev. month June"
+msgid "Jun"
+msgstr ""
+
+#: static/admin/js/calendar.js:31
+msgctxt "abbrev. month July"
+msgid "Jul"
+msgstr ""
+
+#: static/admin/js/calendar.js:32
+msgctxt "abbrev. month August"
+msgid "Aug"
+msgstr ""
+
+#: static/admin/js/calendar.js:33
+msgctxt "abbrev. month September"
+msgid "Sep"
+msgstr ""
+
+#: static/admin/js/calendar.js:34
+msgctxt "abbrev. month October"
+msgid "Oct"
+msgstr ""
+
+#: static/admin/js/calendar.js:35
+msgctxt "abbrev. month November"
+msgid "Nov"
+msgstr ""
+
+#: static/admin/js/calendar.js:36
+msgctxt "abbrev. month December"
+msgid "Dec"
+msgstr ""
+
+#: static/admin/js/calendar.js:39
+msgid "Sunday"
+msgstr ""
+
+#: static/admin/js/calendar.js:40
+msgid "Monday"
+msgstr ""
+
+#: static/admin/js/calendar.js:41
+msgid "Tuesday"
+msgstr ""
+
+#: static/admin/js/calendar.js:42
+msgid "Wednesday"
+msgstr ""
+
+#: static/admin/js/calendar.js:43
+msgid "Thursday"
+msgstr ""
+
+#: static/admin/js/calendar.js:44
+msgid "Friday"
+msgstr ""
+
+#: static/admin/js/calendar.js:45
+msgid "Saturday"
+msgstr ""
+
+#: static/admin/js/calendar.js:48
+msgctxt "abbrev. day Sunday"
+msgid "Sun"
+msgstr ""
+
+#: static/admin/js/calendar.js:49
+msgctxt "abbrev. day Monday"
+msgid "Mon"
+msgstr ""
+
+#: static/admin/js/calendar.js:50
+msgctxt "abbrev. day Tuesday"
+msgid "Tue"
+msgstr ""
+
+#: static/admin/js/calendar.js:51
+msgctxt "abbrev. day Wednesday"
+msgid "Wed"
+msgstr ""
+
+#: static/admin/js/calendar.js:52
+msgctxt "abbrev. day Thursday"
+msgid "Thur"
+msgstr ""
+
+#: static/admin/js/calendar.js:53
+msgctxt "abbrev. day Friday"
+msgid "Fri"
+msgstr ""
+
+#: static/admin/js/calendar.js:54
+msgctxt "abbrev. day Saturday"
+msgid "Sat"
+msgstr ""
+
+#: static/admin/js/calendar.js:57
+msgctxt "one letter Sunday"
+msgid "S"
+msgstr ""
+
+#: static/admin/js/calendar.js:58
+msgctxt "one letter Monday"
+msgid "M"
+msgstr ""
+
+#: static/admin/js/calendar.js:59
+msgctxt "one letter Tuesday"
+msgid "T"
+msgstr ""
+
+#: static/admin/js/calendar.js:60
+msgctxt "one letter Wednesday"
+msgid "W"
+msgstr ""
+
+#: static/admin/js/calendar.js:61
+msgctxt "one letter Thursday"
+msgid "T"
+msgstr ""
+
+#: static/admin/js/calendar.js:62
+msgctxt "one letter Friday"
+msgid "F"
+msgstr ""
+
+#: static/admin/js/calendar.js:63
+msgctxt "one letter Saturday"
+msgid "S"
+msgstr ""
+
+#: static/admin/js/collapse.js:16 static/admin/js/collapse.js:34
+msgid "Show"
+msgstr ""
+
+#: static/admin/js/collapse.js:30
+msgid "Hide"
+msgstr ""

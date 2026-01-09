@@ -1,4 +1,5 @@
-{% load static %}
+{% load static i18n %}
+{% get_current_language as LANGUAGE_CODE %}
 <style>
     .navbar-logo {
         height: 36px;
@@ -18,73 +19,138 @@
 
 <!-- Top bar -->
 <div class="topbar">
-    &copy; Abbosjon Vositov {% now "Y" %}
+    Abbosjon Vositov {% now "Y" %}
 </div>
 
 
 <!-- Existing navbar -->
+
+
 <nav class="navbar navbar-expand-lg flex-row">
     <div class="container-fluid">
+
+        <!-- Logo -->
         <a class="navbar-brand d-flex align-items-center mx-lg-1 mr-0"
            href="{% url 'landing_page' %}">
-            <img
-                    src="{% static 'assets/images/logo.svg' %}"
-                    alt="Narxlar va Hududlar"
-                    class="navbar-logo me-3"
-            >
+            <img src="{% static 'assets/images/logo.svg' %}"
+                 alt="Narxlar va Hududlar"
+                 class="navbar-logo mr-3">
             <span class="h5 mb-0">Narx tahlili</span>
         </a>
 
+        <!-- Sidebar Toggle -->
         <button class="navbar-toggler mt-2 mr-auto toggle-sidebar text-muted">
             <i class="fe fe-menu navbar-toggler-icon"></i>
         </button>
 
+        <!-- Navbar Slide -->
         <div class="navbar-slide bg-white ml-lg-4" id="navbarSupportedContent">
-            <a href="#" class="btn toggle-sidebar d-lg-none text-muted ml-2 mt-3" data-toggle="toggle">
+            <a href="#" class="btn toggle-sidebar d-lg-none text-muted ml-2 mt-3">
                 <i class="fe fe-x"><span class="sr-only"></span></i>
             </a>
-            <ul class="navbar-nav mr-auto">
-            </ul>
+            <ul class="navbar-nav mr-auto"></ul>
         </div>
 
-        <ul class="navbar-nav d-flex flex-row">
-            <li class="nav-item">
-                <a class="nav-link text-muted my-2" href="./#" id="modeSwitcher" data-mode="dark">
+        <!-- Right Icons -->
+        <ul class="navbar-nav d-flex flex-row align-items-center">
+
+            <!-- Language Switcher -->
+            <li class="nav-item dropdown ml-3 d-flex align-items-center">
+                <a class="nav-link dropdown-toggle text-muted p-0 d-flex align-items-center justify-content-center"
+                   href="#"
+                   id="languageDropdown"
+                   role="button"
+                   data-toggle="dropdown"
+                   aria-haspopup="true"
+                   aria-expanded="false"
+                   style="height:40px; min-width:40px;">
+
+                    <i class="fe fe-globe fe-16 mr-1"></i>
+                    <span class="text-uppercase small font-weight-bold">
+                        {{ LANGUAGE_CODE }}
+                    </span>
+                </a>
+
+                <div class="dropdown-menu dropdown-menu-right shadow-sm"
+                     aria-labelledby="languageDropdown">
+
+                    <form action="{% url 'set_language' %}" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.path }}">
+
+                        <button type="submit" name="language" value="uz"
+                                class="dropdown-item {% if LANGUAGE_CODE == 'uz' %}active{% endif %}">
+                            Oʻzbekcha {% if LANGUAGE_CODE == 'uz' %}<span class="float-right">✓</span>{% endif %}
+                        </button>
+
+                        <button type="submit" name="language" value="cy"
+                                class="dropdown-item {% if LANGUAGE_CODE == 'cy' %}active{% endif %}">
+                            Ўзbekcha {% if LANGUAGE_CODE == 'cy' %}<span class="float-right">✓</span>{% endif %}
+                        </button>
+
+                        <button type="submit" name="language" value="ru"
+                                class="dropdown-item {% if LANGUAGE_CODE == 'ru' %}active{% endif %}">
+                            Русский {% if LANGUAGE_CODE == 'ru' %}<span class="float-right">✓</span>{% endif %}
+                        </button>
+
+                        <button type="submit" name="language" value="en"
+                                class="dropdown-item {% if LANGUAGE_CODE == 'en' %}active{% endif %}">
+                            English {% if LANGUAGE_CODE == 'en' %}<span class="float-right">✓</span>{% endif %}
+                        </button>
+                    </form>
+                </div>
+            </li>
+
+            <!-- Dark Mode -->
+            <li class="nav-item ml-3 d-flex align-items-center">
+                <a class="nav-link text-muted p-0 d-flex align-items-center justify-content-center"
+                   href="#"
+                   id="modeSwitcher"
+                   data-mode="dark"
+                   style="height:40px; width:40px;">
                     <i class="fe fe-moon fe-16"></i>
                 </a>
-
             </li>
 
-            <li class="nav-item dropdown ml-lg-0">
-                <a class="nav-link dropdown-toggle text-muted" href="#" id="navbarDropdownMenuLink" role="button"
-                   data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <span class="avatar avatar-sm mt-2">
-                    {% if user.userprofile.profile_picture %}
-                        <img src="{{ user.userprofile.profile_picture.url }}"
-                             alt="{{ user.username }}"
-                             class="avatar-img rounded-circle">
-                    {% else %}
-                        <img src="{% static 'assets/avatars/face-1.jpg' %}"
-                             alt="Default Avatar"
-                             class="avatar-img rounded-circle">
-                    {% endif %}
-                </span>
+            <!-- User Menu -->
+            <li class="nav-item dropdown ml-3 d-flex align-items-center">
+                <a class="nav-link dropdown-toggle text-muted p-0 d-flex align-items-center justify-content-center"
+                   href="#"
+                   id="navbarDropdownMenuLink"
+                   role="button"
+                   data-toggle="dropdown"
+                   aria-haspopup="true"
+                   aria-expanded="false"
+                   style="height:40px; width:40px;">
+
+                    <span class="avatar avatar-sm">
+                        {% if user.userprofile.profile_picture %}
+                            <img src="{{ user.userprofile.profile_picture.url }}"
+                                 alt="{{ user.username }}"
+                                 class="avatar-img rounded-circle">
+                        {% else %}
+                            <img src="{% static 'assets/avatars/face-1.jpg' %}"
+                                 alt="Default Avatar"
+                                 class="avatar-img rounded-circle">
+                        {% endif %}
+                    </span>
                 </a>
-                <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
-                    <li class="nav-item">
-                        <a class="nav-link pl-3" href="{% url 'profile_page' %}">Shaxsiy kabinet</a>
-                    </li>
-                    <li class="nav-item">
-                        <form method="post" action="{% url 'logout' %}" id="logout-form">
-                            {% csrf_token %}
-                            <a href="#" class="nav-link pl-3"
-                               onclick="document.getElementById('logout-form').submit(); return false;">
-                                Chiqish
-                            </a>
-                        </form>
-                    </li>
-                </ul>
+
+                <div class="dropdown-menu dropdown-menu-right shadow-sm"
+                     aria-labelledby="navbarDropdownMenuLink">
+                    <a class="dropdown-item" href="{% url 'profile_page' %}">
+                        {% trans "Shaxsiy kabinet" %}
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <form method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="dropdown-item">
+                            {% trans "Chiqish" %}
+                        </button>
+                    </form>
+                </div>
             </li>
+
         </ul>
     </div>
 </nav>

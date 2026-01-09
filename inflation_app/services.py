@@ -21,13 +21,19 @@ def load_meta_data_fron_excel_file(file_path):
         for _, row in region_df.iterrows():
             defaults = {
                 'region_name_cyrillic': str(row['region_name_cyrillic']).strip(),
-                'hc_key': str(row['hc_key']).strip() if 'hc_key' in row and not pd.isna(row['hc_key']) else ''
+                'hc_key': str(row['hc_key']).strip() if 'hc_key' in row and not pd.isna(row['hc_key']) else '',
             }
 
-            # Add weights safely (handles NaN/null values)
+            # Optional language columns
+            if 'region_name_russian' in row and not pd.isna(row['region_name_russian']):
+                defaults['region_name_russian'] = str(row['region_name_russian']).strip()
+
+            if 'region_name_english' in row and not pd.isna(row['region_name_english']):
+                defaults['region_name_english'] = str(row['region_name_english']).strip()
+
+            # Optional weights
             if 'weights' in row and not pd.isna(row['weights']):
-                defaults['weights'] = row['weights']  # DecimalField handles float/decimal conversion
-            # else: weights remains None/null (doesn't overwrite existing values)
+                defaults['weights'] = row['weights']
 
             Region.objects.update_or_create(
                 region_name_latin=str(row['region_name']).strip(),
@@ -40,11 +46,19 @@ def load_meta_data_fron_excel_file(file_path):
         district_df = district_df.dropna(subset=['district_name_latin'])
 
         for _, row in district_df.iterrows():
+            defaults = {
+                'district_name_cyrillic': str(row['district_name_cyrillic']).strip()
+            }
+
+            if 'district_name_russian' in row and not pd.isna(row['district_name_russian']):
+                defaults['district_name_russian'] = str(row['district_name_russian']).strip()
+
+            if 'district_name_english' in row and not pd.isna(row['district_name_english']):
+                defaults['district_name_english'] = str(row['district_name_english']).strip()
+
             District.objects.update_or_create(
                 district_name_latin=str(row['district_name_latin']).strip(),
-                defaults={
-                    'district_name_cyrillic': str(row['district_name_cyrillic']).strip()
-                }
+                defaults=defaults
             )
             processed += 1
 
@@ -53,11 +67,19 @@ def load_meta_data_fron_excel_file(file_path):
         product_df = product_df.dropna(subset=['product_name_latin'])
 
         for _, row in product_df.iterrows():
+            defaults = {
+                'product_name_cyrillic': str(row['product_name_cyrillic']).strip()
+            }
+
+            if 'product_name_russian' in row and not pd.isna(row['product_name_russian']):
+                defaults['product_name_russian'] = str(row['product_name_russian']).strip()
+
+            if 'product_name_english' in row and not pd.isna(row['product_name_english']):
+                defaults['product_name_english'] = str(row['product_name_english']).strip()
+
             Product.objects.update_or_create(
                 product_name_latin=str(row['product_name_latin']).strip(),
-                defaults={
-                    'product_name_cyrillic': str(row['product_name_cyrillic']).strip()
-                }
+                defaults=defaults
             )
             processed += 1
 
@@ -65,9 +87,8 @@ def load_meta_data_fron_excel_file(file_path):
         return processed
 
     except Exception as e:
-        # Any exception triggers full rollback because of @transaction.atomic
-        print(f"Reference file error: {e}")
-        raise  # IMPORTANT: re-raise to enforce rollback
+        print(f"❌ Reference file error: {e}")
+        raise  # enforce rollback
 
 
 @transaction.atomic
