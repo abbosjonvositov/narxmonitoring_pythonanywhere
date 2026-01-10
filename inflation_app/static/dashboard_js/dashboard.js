@@ -1,68 +1,41 @@
 document.addEventListener("DOMContentLoaded", async () => {
   const filtersForm = document.getElementById("filtersForm");
   const dateDropdownContainer = document.getElementById("dateDropdownContainer");
-
-  // ✅ Footer updater
+  const langForm = document.querySelector("#languageDropdown form");
 
   async function loadChart(filters = {}) {
     try {
       const result = await fetchDashboardData(filters);
 
-      // ✅ Extract chart data from backend response
-      const mapData = result.charts?.map_heatmap?.data || [];
-      const productData = result.charts?.product_chart?.data || [];
-      const regionData = result.charts?.region_chart?.data || [];
-      const districtData = result.charts?.district_chart?.data || [];
-      const linegraphData = result.charts?.linegraph_chart?.data || [];
-      const stackedColumnData = result.charts?.stacked_column_chart?.data || []; // NEW
+      // ✅ Values are already localized by Django
+      const interfaceText = result.global_metadata?.interface_text || {};
 
-      console.log("Region chart data:", regionData);
-      console.log("District chart data:", districtData);
-      console.log("Linegraph chart data:", linegraphData);
-      console.log("Stacked column chart data:", stackedColumnData); // NEW
+      currentInterfaceText = {
+        product_name: interfaceText.product_name,
+        region_name: interfaceText.region_name,
+        district_name: interfaceText.district_name,
+        date_visual: interfaceText.date_visual
+      };
 
-      // ✅ Update global interface text
-      currentInterfaceText = result.global_metadata?.interface_text || {};
-
-      // ✅ Update footer info
       updateFooterInfo();
 
-      // ✅ Populate date dropdown if metadata is available
-      if (dateDropdownContainer && result.global_metadata?.date_options_interface) {
+      if (dateDropdownContainer && result.global_metadata?.date_options) {
+        // date_options_interface may still be multilingual, so keep lang here
+        const lang = window.LANGUAGE_CODE || "en";
+        const labels = result.global_metadata.date_options_interface?.[lang] || result.global_metadata.date_options;
         populateDateDropdown(
           result.global_metadata.date_options,
-          result.global_metadata.date_options_interface,
+          labels,
           result.global_metadata.filters?.date
         );
       }
 
-      // ✅ Render map heatmap
-      renderMapHeatmap(mapData, currentInterfaceText);
-
-      // ✅ Render product chart if data exists
-      if (productData.length > 0) {
-        renderProductCharts(productData);
-      }
-
-      // ✅ Render region chart
-      if (regionData.length > 0) {
-        renderRegionChart(regionData);
-      }
-
-      // ✅ Render district chart
-      if (districtData.length > 0) {
-        renderDistrictChart(districtData);
-      }
-
-      // ✅ Render linegraph chart
-      if (linegraphData.series && linegraphData.series.length > 0) {
-        renderLinegraphChart(linegraphData);
-      }
-
-      // ✅ Render stacked column chart
-      if (stackedColumnData.series && stackedColumnData.series.length > 0) {
-        renderStackedColumnChart(stackedColumnData);
-      }
+      renderMapHeatmap(result.charts?.map_heatmap?.data || [], currentInterfaceText);
+      if (result.charts?.product_chart?.data?.length) renderProductCharts(result.charts.product_chart.data);
+      if (result.charts?.region_chart?.data?.length) renderRegionChart(result.charts.region_chart.data);
+      if (result.charts?.district_chart?.data?.length) renderDistrictChart(result.charts.district_chart.data);
+      if (result.charts?.linegraph_chart?.data?.series?.length) renderLinegraphChart(result.charts.linegraph_chart.data);
+      if (result.charts?.stacked_column_chart?.data?.series?.length) renderStackedColumnChart(result.charts.stacked_column_chart.data);
 
     } catch (error) {
       console.error("Error loading chart:", error);
@@ -78,6 +51,25 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // Initial load → no filters, backend will use defaults
+  if (langForm) {
+    langForm.addEventListener("submit", async e => {
+      e.preventDefault();
+      const formData = new FormData(langForm);
+
+      await fetch(langForm.action, {
+        method: "POST",
+        body: formData,
+        headers: { "X-CSRFToken": formData.get("csrfmiddlewaretoken") }
+      });
+
+      // ✅ Update global LANGUAGE_CODE after change
+      window.LANGUAGE_CODE = formData.get("language");
+
+      // Reload charts in new language
+      loadChart(currentFilters);
+    });
+  }
+
+  // ✅ Initial load
   loadChart();
 });

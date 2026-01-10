@@ -20,91 +20,91 @@ msgstr ""
 
 #: inflation_app/static/dashboard_js/charts/district_chart.js:78
 msgid "Tuman nomi"
-msgstr ""
+msgstr "Tuman nomi"
 
 #: inflation_app/static/dashboard_js/charts/district_chart.js:79
 #: inflation_app/static/dashboard_js/charts/product_chart.js:126
 #: inflation_app/static/dashboard_js/charts/region_chart.js:85
 msgid "Joriy narx"
-msgstr ""
+msgstr "Joriy narx"
 
 #: inflation_app/static/dashboard_js/charts/district_chart.js:80
 #: inflation_app/static/dashboard_js/charts/product_chart.js:127
 #: inflation_app/static/dashboard_js/charts/region_chart.js:86
 msgid "Avvalgi narx"
-msgstr ""
+msgstr "Avvalgi narx"
 
 #: inflation_app/static/dashboard_js/charts/district_chart.js:81
 #: inflation_app/static/dashboard_js/charts/region_chart.js:87
 msgid "O'zgarish %"
-msgstr ""
+msgstr "O'zgarish %"
 
 #: inflation_app/static/dashboard_js/charts/district_chart.js:82
 #: inflation_app/static/dashboard_js/charts/region_chart.js:88
 msgid "Nominal o'zgarish (so'm)"
-msgstr ""
+msgstr "Nominal o'zgarish (so'm)"
 
 #: inflation_app/static/dashboard_js/charts/district_chart.js:168
 #: inflation_app/static/dashboard_js/charts/region_chart.js:165
 msgid "Ijobiy o'zgarish"
-msgstr ""
+msgstr "Ijobiy o'zgarish"
 
 #: inflation_app/static/dashboard_js/charts/district_chart.js:168
 #: inflation_app/static/dashboard_js/charts/region_chart.js:165
 msgid "Salbiy o'zgarish"
-msgstr ""
+msgstr "Salbiy o'zgarish"
 
 #: inflation_app/static/dashboard_js/charts/district_chart.js:199
 #: inflation_app/static/dashboard_js/charts/region_chart.js:196
 msgid "Nominal o'zgarish"
-msgstr ""
+msgstr "Nominal o'zgarish"
 
 #: inflation_app/static/dashboard_js/charts/linegraph_chart.js:30
 #: inflation_app/static/dashboard_js/charts/map_heatmap.js:179
 #: inflation_app/static/dashboard_js/charts/stacked_column_chart.js:13
 msgid "Unknown product"
-msgstr ""
+msgstr "Unknown product"
 
 #: inflation_app/static/dashboard_js/charts/linegraph_chart.js:80
 #: inflation_app/static/dashboard_js/charts/stacked_column_chart.js:62
 msgid "Sana"
-msgstr ""
+msgstr "Sana"
 
 #: inflation_app/static/dashboard_js/charts/linegraph_chart.js:86
 msgid "Price (so'm)"
-msgstr ""
+msgstr "Price (so'm)"
 
 #: inflation_app/static/dashboard_js/charts/linegraph_chart.js:86
 msgid "Narx"
-msgstr ""
+msgstr "Narx"
 
 #: inflation_app/static/dashboard_js/charts/map_heatmap.js:225
 msgid "Narx darajasi"
-msgstr ""
+msgstr "Narx darajasi"
 
 #: inflation_app/static/dashboard_js/charts/map_heatmap.js:246
 msgid "Respublika"
-msgstr ""
+msgstr "Respublika"
 
 #: inflation_app/static/dashboard_js/charts/product_chart.js:125
 msgid "Mahsulot nomi"
-msgstr ""
+msgstr "Mahsulot nomi"
 
 #: inflation_app/static/dashboard_js/charts/product_chart.js:128
 msgid "O‘zgarish %"
-msgstr ""
+msgstr "O‘zgarish %"
 
 #: inflation_app/static/dashboard_js/charts/product_chart.js:129
 msgid "Trend"
-msgstr ""
+msgstr "Trend"
 
 #: inflation_app/static/dashboard_js/charts/product_chart.js:203
 msgid "Ijobiy o‘zgarish"
-msgstr ""
+msgstr "Ijobiy o‘zgarish"
 
 #: inflation_app/static/dashboard_js/charts/product_chart.js:203
 msgid "Salbiy o‘zgarish"
-msgstr ""
+msgstr "Salbiy o‘zgarish"
 
 #: inflation_app/static/dashboard_js/charts/product_chart.js:234
 msgid "UZS"
@@ -112,11 +112,11 @@ msgstr ""
 
 #: inflation_app/static/dashboard_js/charts/region_chart.js:84
 msgid "Viloyat nomi"
-msgstr ""
+msgstr "Viloyat nomi"
 
 #: inflation_app/static/dashboard_js/charts/stacked_column_chart.js:68
 msgid "Foizda (%)"
-msgstr ""
+msgstr "Foizda (%)"
 
 #: inflation_app/static/dashboard_js/charts/stacked_column_chart.js:93
 msgid "Total"
@@ -132,32 +132,32 @@ msgstr ""
 
 #: inflation_app/static/widgets/right_sidebar.js:98
 msgid "Koʻrsatkichlar"
-msgstr ""
+msgstr "Koʻrsatkichlar"
 
 #: inflation_app/static/widgets/right_sidebar.js:99
 #: inflation_app/static/widgets/right_sidebar.js:150
 msgid "Hududlar"
-msgstr ""
+msgstr "Hududlar"
 
 #: inflation_app/static/widgets/right_sidebar.js:100
 msgid "Qiymat"
-msgstr ""
+msgstr "Qiymat"
 
 #: inflation_app/static/widgets/right_sidebar.js:103
 msgid "Eng yuqori oʻsish (%)"
-msgstr ""
+msgstr "Eng yuqori oʻsish (%)"
 
 #: inflation_app/static/widgets/right_sidebar.js:108
 msgid "Eng yuqori pasayish (%)"
-msgstr ""
+msgstr "Eng yuqori pasayish (%)"
 
 #: inflation_app/static/widgets/right_sidebar.js:113
 msgid "Eng qimmat"
-msgstr ""
+msgstr "Eng qimmat"
 
 #: inflation_app/static/widgets/right_sidebar.js:118
 msgid "Eng arzon"
-msgstr ""
+msgstr "Eng arzon"
 
 #: inflation_app/static/widgets/right_sidebar.js:151
 msgid "1W"

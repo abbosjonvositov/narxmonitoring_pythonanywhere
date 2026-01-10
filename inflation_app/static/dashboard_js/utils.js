@@ -82,6 +82,11 @@ async function updateMapDrilldown(regionId) {
       mapChart.drillUp();
       isInDrilldown = false;
       currentFilters.region_id = null;
+      currentFilters.district_id = null;
+
+      // ✅ Refresh UI after drill-up
+      renderAppliedFilters();
+      updateFooterInfo();
     }
     return;
   }
@@ -93,9 +98,14 @@ async function updateMapDrilldown(regionId) {
   if (point) {
     try {
       await drilldownHandler.call(mapChart, { seriesOptions: null, point });
+
       // 🔑 Mark drilldown state in globals
       isInDrilldown = true;
       currentFilters.region_id = regionId;
+
+      // ✅ Refresh UI after drilldown
+      renderAppliedFilters();
+      updateFooterInfo();
     } catch (err) {
       console.error("Map drilldown error:", err);
     }
@@ -106,22 +116,35 @@ async function updateMapDrilldown(regionId) {
 
 async function updateAllCharts(newFilters = {}, options = {}) {
   try {
+    // ✅ Merge new filters into global state
     currentFilters = { ...currentFilters, ...newFilters };
 
+    // ✅ Fetch fresh dashboard data unless provided
     const dashboardData =
       options.dashboardData || await fetchDashboardData(currentFilters);
 
-    if (!options.skipInterfaceText && dashboardData.interface_text) {
-      currentInterfaceText = dashboardData.interface_text;
+    // ✅ Resolve interface text (already localized by Django)
+    if (!options.skipInterfaceText && dashboardData.global_metadata?.interface_text) {
+      const it = dashboardData.global_metadata.interface_text;
+      currentInterfaceText = {
+        product_name: it.product_name ?? currentInterfaceText?.product_name,
+        region_name: it.region_name ?? currentInterfaceText?.region_name,
+        district_name: it.district_name ?? currentInterfaceText?.district_name,
+        date_visual: it.date_visual ?? currentInterfaceText?.date_visual
+      };
     }
 
     // ✅ Always refresh footer info
     updateFooterInfo();
 
-    if (dashboardData.global_metadata?.date_options_interface) {
+    // ✅ Populate date dropdown with localized labels
+    if (dashboardData.global_metadata?.date_options) {
+      const lang = window.LANGUAGE_CODE || "en";
+      const labels = dashboardData.global_metadata.date_options_interface?.[lang]
+        || dashboardData.global_metadata.date_options;
       populateDateDropdown(
         dashboardData.global_metadata.date_options,
-        dashboardData.global_metadata.date_options_interface,
+        labels,
         currentFilters.date
       );
     }
@@ -151,7 +174,7 @@ async function updateAllCharts(newFilters = {}, options = {}) {
           };
         });
 
-        // ✅ APPLY PRICE SCALING FOR DRILLDOWN
+        // ✅ Apply price scaling for drilldown
         const values = districtData
           .map(d => d.value)
           .filter(v => v !== null && v !== undefined);
@@ -160,24 +183,18 @@ async function updateAllCharts(newFilters = {}, options = {}) {
           let minVal = Math.min(...values);
           let maxVal = Math.max(...values);
 
-          // Prevent flat color scale
           if (minVal === maxVal) {
             minVal *= 0.99;
             maxVal *= 1.01;
           }
 
-          mapChart.colorAxis[0].update(
-            { min: minVal, max: maxVal },
-            false // defer redraw
-          );
+          mapChart.colorAxis[0].update({ min: minVal, max: maxVal }, false);
         }
 
         mapChart.series[0].setData(districtData);
 
-        const productName =
-          currentInterfaceText?.product_name_latin || "Unknown product";
-        const formattedDate =
-          currentInterfaceText?.date_visual || "";
+        const productName = currentInterfaceText?.product_name || "Unknown product";
+        const formattedDate = currentInterfaceText?.date_visual || "";
 
         mapChart.setSubtitle({
           text: `${productName} — ${formattedDate} — ${mapChart.series[0].name}`
@@ -202,83 +219,13 @@ async function updateAllCharts(newFilters = {}, options = {}) {
       renderStackedColumnChart(dashboardData.charts.stacked_column_chart.data);
     }
 
+    // ✅ Re-render applied filters
     renderAppliedFilters();
 
   } catch (err) {
     console.error("Failed to update charts:", err);
   }
 }
-
-// Central update function
-//async function updateAllCharts(newFilters = {}, options = {}) {
-//  try {
-//    currentFilters = { ...currentFilters, ...newFilters };
-//
-//    const dashboardData = options.dashboardData || await fetchDashboardData(currentFilters);
-//
-//    if (!options.skipMap) {
-//      if (isInDrilldown && currentFilters.region_id) {
-//        const regionId = currentFilters.region_id;
-//        const fileName = drilldownFileMap[regionId];
-//
-//        const topology = await fetch(staticMapsBase + fileName + ".json").then(r => r.json());
-//        const mapResult = dashboardData.charts.map_heatmap;
-//
-//        const districtShapes = Highcharts.geojson(topology);
-//        const districtData = districtShapes.map(shape => {
-//          const shapeNameRaw =
-//            shape.properties.NAME_2 ||
-//            shape.properties.VARNAME_2 ||
-//            shape.properties.name ||
-//            shape.properties.id ||
-//            "";
-//          const shapeName = shapeNameRaw.trim().toLowerCase();
-//
-//          const match = mapResult.data.find(d => {
-//            if (!d || !d.district_name_latin) return false;
-//            let dbName = d.district_name_latin.trim().toLowerCase();
-//            dbName = dbName.replace(" tumani", "").replace(" district", "");
-//            return dbName === shapeName;
-//          });
-//
-//          return {
-//            ...shape,
-//            value: match ? match.price : null,
-//            name: match ? match.district_name_latin : shapeNameRaw
-//          };
-//        });
-//
-//        mapChart.series[0].setData(districtData);
-//
-//        const productName = currentInterfaceText?.product_name_latin || "Unknown product";
-//        const productNameCyrillic = currentInterfaceText?.product_name_cyrillic || "";
-//        const formattedDate = currentInterfaceText?.date_visual || "";
-//        mapChart.setSubtitle({
-//          text: `${productName} — ${formattedDate} — ${mapChart.series[0].name}`
-//        });
-//
-//      } else {
-//        const mapData = dashboardData.charts.map_heatmap;
-//        renderMapHeatmap(mapData.data, currentInterfaceText);
-//      }
-//    }
-//
-//    if (dashboardData.charts?.product_chart?.data) {
-//      renderProductCharts(dashboardData.charts.product_chart.data);
-//    }
-//
-//    if (dashboardData.charts?.region_chart?.data) {
-//      renderRegionChart(dashboardData.charts.region_chart.data);
-//    }
-//
-//    if (dashboardData.charts?.district_chart?.data) {
-//      renderDistrictChart(dashboardData.charts.district_chart.data);
-//    }
-//
-//  } catch (err) {
-//    console.error("Failed to update charts:", err);
-//  }
-//}
 
 
 function populateDateDropdown(dateOptions, dateOptionsInterface, selectedDate) {
@@ -317,9 +264,9 @@ function renderAppliedFilters() {
   container.innerHTML = "";
 
   const labelMap = {
-    product_id: currentInterfaceText?.product_name_latin,
-    region_id: currentInterfaceText?.region_name_latin,
-    district_id: currentInterfaceText?.district_name_latin,
+    product_id: currentInterfaceText?.product_name,
+    region_id: currentInterfaceText?.region_name,
+    district_id: currentInterfaceText?.district_name,
     date: currentInterfaceText?.date_visual
   };
 
@@ -360,30 +307,10 @@ function renderAppliedFilters() {
 }
 
 
-//function updateFooterInfo() {
-//  const productName = currentInterfaceText?.product_name_latin || "";
-//  const regionName = currentInterfaceText?.region_name_latin || "";
-//  const districtName = currentInterfaceText?.district_name_latin || "";
-//  const dateVisual = currentInterfaceText?.date_visual || "";
-//
-//  let footerParts = [];
-//  if (productName) footerParts.push(productName);
-//  if (regionName) footerParts.push(regionName);
-//  if (districtName) footerParts.push(districtName);
-//  if (dateVisual) footerParts.push(dateVisual);
-//
-//  const footerText = footerParts.join(" — ") || "No filter info";
-//
-//  // ✅ Update district chart footer
-//  const districtFooter = document.getElementById("districtFooterInfo");
-//  if (districtFooter) {
-//    districtFooter.textContent = footerText;
-//  }
-//}
 function updateFooterInfo() {
-  const productName = currentInterfaceText?.product_name_latin || "";
-  const regionName = currentInterfaceText?.region_name_latin || "";
-  const districtName = currentInterfaceText?.district_name_latin || "";
+  const productName = currentInterfaceText?.product_name || "";
+  const regionName = currentInterfaceText?.region_name || "";
+  const districtName = currentInterfaceText?.district_name || "";
   const dateVisual = currentInterfaceText?.date_visual || "";
 
   let footerParts = [];

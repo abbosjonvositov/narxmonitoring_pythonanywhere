@@ -22,44 +22,44 @@ msgstr ""
 
 #: inflation_app/static/dashboard_js/charts/district_chart.js:78
 msgid "Tuman nomi"
-msgstr ""
+msgstr "Название района"
 
 #: inflation_app/static/dashboard_js/charts/district_chart.js:79
 #: inflation_app/static/dashboard_js/charts/product_chart.js:126
 #: inflation_app/static/dashboard_js/charts/region_chart.js:85
 msgid "Joriy narx"
-msgstr ""
+msgstr "Текущая цена"
 
 #: inflation_app/static/dashboard_js/charts/district_chart.js:80
 #: inflation_app/static/dashboard_js/charts/product_chart.js:127
 #: inflation_app/static/dashboard_js/charts/region_chart.js:86
 msgid "Avvalgi narx"
-msgstr ""
+msgstr "Предыдущая цена"
 
 #: inflation_app/static/dashboard_js/charts/district_chart.js:81
 #: inflation_app/static/dashboard_js/charts/region_chart.js:87
 msgid "O'zgarish %"
-msgstr ""
+msgstr "Изменение %"
 
 #: inflation_app/static/dashboard_js/charts/district_chart.js:82
 #: inflation_app/static/dashboard_js/charts/region_chart.js:88
 msgid "Nominal o'zgarish (so'm)"
-msgstr ""
+msgstr "Номинальное изменение (сум)"
 
 #: inflation_app/static/dashboard_js/charts/district_chart.js:168
 #: inflation_app/static/dashboard_js/charts/region_chart.js:165
 msgid "Ijobiy o'zgarish"
-msgstr ""
+msgstr "Положительное изменение"
 
 #: inflation_app/static/dashboard_js/charts/district_chart.js:168
 #: inflation_app/static/dashboard_js/charts/region_chart.js:165
 msgid "Salbiy o'zgarish"
-msgstr ""
+msgstr "Негативное изменение"
 
 #: inflation_app/static/dashboard_js/charts/district_chart.js:199
 #: inflation_app/static/dashboard_js/charts/region_chart.js:196
 msgid "Nominal o'zgarish"
-msgstr ""
+msgstr "Номинальное изменение"
 
 #: inflation_app/static/dashboard_js/charts/linegraph_chart.js:30
 #: inflation_app/static/dashboard_js/charts/map_heatmap.js:179
@@ -70,7 +70,7 @@ msgstr ""
 #: inflation_app/static/dashboard_js/charts/linegraph_chart.js:80
 #: inflation_app/static/dashboard_js/charts/stacked_column_chart.js:62
 msgid "Sana"
-msgstr ""
+msgstr "Дата"
 
 #: inflation_app/static/dashboard_js/charts/linegraph_chart.js:86
 msgid "Price (so'm)"
@@ -78,35 +78,35 @@ msgstr ""
 
 #: inflation_app/static/dashboard_js/charts/linegraph_chart.js:86
 msgid "Narx"
-msgstr ""
+msgstr "Цена"
 
 #: inflation_app/static/dashboard_js/charts/map_heatmap.js:225
 msgid "Narx darajasi"
-msgstr ""
+msgstr "Уровень цен"
 
 #: inflation_app/static/dashboard_js/charts/map_heatmap.js:246
 msgid "Respublika"
-msgstr ""
+msgstr "Республика"
 
 #: inflation_app/static/dashboard_js/charts/product_chart.js:125
 msgid "Mahsulot nomi"
-msgstr ""
+msgstr "Название продукта"
 
 #: inflation_app/static/dashboard_js/charts/product_chart.js:128
 msgid "O‘zgarish %"
-msgstr ""
+msgstr "Изменение %"
 
 #: inflation_app/static/dashboard_js/charts/product_chart.js:129
 msgid "Trend"
-msgstr ""
+msgstr "Тренд"
 
 #: inflation_app/static/dashboard_js/charts/product_chart.js:203
 msgid "Ijobiy o‘zgarish"
-msgstr ""
+msgstr "Положительное изменение"
 
 #: inflation_app/static/dashboard_js/charts/product_chart.js:203
 msgid "Salbiy o‘zgarish"
-msgstr ""
+msgstr "Отрицательное изменение"
 
 #: inflation_app/static/dashboard_js/charts/product_chart.js:234
 msgid "UZS"
@@ -114,11 +114,11 @@ msgstr ""
 
 #: inflation_app/static/dashboard_js/charts/region_chart.js:84
 msgid "Viloyat nomi"
-msgstr ""
+msgstr "Название области"
 
 #: inflation_app/static/dashboard_js/charts/stacked_column_chart.js:68
 msgid "Foizda (%)"
-msgstr ""
+msgstr "В процентах (%)"
 
 #: inflation_app/static/dashboard_js/charts/stacked_column_chart.js:93
 msgid "Total"
@@ -134,32 +134,32 @@ msgstr ""
 
 #: inflation_app/static/widgets/right_sidebar.js:98
 msgid "Koʻrsatkichlar"
-msgstr ""
+msgstr "Показатели"
 
 #: inflation_app/static/widgets/right_sidebar.js:99
 #: inflation_app/static/widgets/right_sidebar.js:150
 msgid "Hududlar"
-msgstr ""
+msgstr "Регионы"
 
 #: inflation_app/static/widgets/right_sidebar.js:100
 msgid "Qiymat"
-msgstr ""
+msgstr "Значение"
 
 #: inflation_app/static/widgets/right_sidebar.js:103
 msgid "Eng yuqori oʻsish (%)"
-msgstr ""
+msgstr "Наибольший рост (%)"
 
 #: inflation_app/static/widgets/right_sidebar.js:108
 msgid "Eng yuqori pasayish (%)"
-msgstr ""
+msgstr "Наибольшее снижение (%)"
 
 #: inflation_app/static/widgets/right_sidebar.js:113
 msgid "Eng qimmat"
-msgstr ""
+msgstr "Самый высокий"
 
 #: inflation_app/static/widgets/right_sidebar.js:118
 msgid "Eng arzon"
-msgstr ""
+msgstr "Самый низкий"
 
 #: inflation_app/static/widgets/right_sidebar.js:151
 msgid "1W"

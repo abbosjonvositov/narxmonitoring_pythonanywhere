@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-09 20:31+0500\n"
+"POT-Creation-Date: 2026-01-10 23:48+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,6 +19,7 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || "
 "(n%100>=11 && n%100<=14)? 2 : 3);\n"
+
 #: inflation_app/admin.py:232
 msgid "You do not have permission to replace products."
 msgstr ""
@@ -120,7 +121,7 @@ msgstr ""
 
 #: inflation_app/templates/landing_page.html:503
 msgid "Viloyatlar va tumanlar kesimida narxlar darajasi"
-msgstr ""
+msgstr "Уровень цен по областям и районам"
 
 #: inflation_app/templates/landing_page.html:505
 #: inflation_app/templates/landing_page.html:532
@@ -160,27 +161,27 @@ msgstr ""
 
 #: inflation_app/templates/landing_page.html:530
 msgid "Hududlar kesimida narxlar dinamikasi"
-msgstr ""
+msgstr "Динамика цен по регионам"
 
 #: inflation_app/templates/landing_page.html:557
-msgid "Hududlar kesimida stacked column chart"
-msgstr ""
+msgid "Hududlarning umumiy narx oʻzgarishiga hissasi"
+msgstr "Вклад регионов в общее изменение цен"
 
 #: inflation_app/templates/landing_page.html:584
 msgid "Mahsulotlar kesimida narxlar dinamikasi"
-msgstr ""
+msgstr "Динамика цен по продуктам"
 
 #: inflation_app/templates/landing_page.html:611
 msgid "Tumanlar kesimida narxlar dinamikasi"
-msgstr ""
+msgstr "Динамика цен по районам"
 
 #: inflation_app/templates/landing_page.html:638
 msgid "Hududlar kesimida narx oʻzgarishlari dinamikasi"
-msgstr ""
+msgstr "Динамика изменения цен по регионам"
 
 #: inflation_app/templates/landing_page.html:668
 msgid "Infografika"
-msgstr ""
+msgstr "Инфографика"
 
 #: inflation_app/templates/landing_page.html:670
 msgid "Pause"
@@ -192,7 +193,7 @@ msgstr ""
 
 #: inflation_app/templates/landing_page.html:694
 msgid "Ma'lumot"
-msgstr ""
+msgstr "Информация"
 
 #: inflation_project/settings.py:156
 msgid "Oʻzbekcha"
@@ -212,8 +213,8 @@ msgstr ""
 
 #: templates/components_base/_topnavbar.html:142
 msgid "Shaxsiy kabinet"
-msgstr ""
+msgstr "Личный кабинет"
 
 #: templates/components_base/_topnavbar.html:148
 msgid "Chiqish"
-msgstr ""
+msgstr "Выход"

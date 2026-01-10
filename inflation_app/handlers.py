@@ -14,6 +14,64 @@ MONTHS_UZ = {
     9: "Sentyabr", 10: "Oktyabr", 11: "Noyabr", 12: "Dekabr"
 }
 
+MONTHS_BY_LANG = {
+    "uz": {
+        1: "Yanvar",
+        2: "Fevral",
+        3: "Mart",
+        4: "Aprel",
+        5: "May",
+        6: "Iyun",
+        7: "Iyul",
+        8: "Avgust",
+        9: "Sentabr",
+        10: "Oktabr",
+        11: "Noyabr",
+        12: "Dekabr",
+    },
+    "cy": {
+        1: "Январ",
+        2: "Феврал",
+        3: "Март",
+        4: "Апрел",
+        5: "Май",
+        6: "Июн",
+        7: "Июл",
+        8: "Август",
+        9: "Сентябр",
+        10: "Октябр",
+        11: "Ноябр",
+        12: "Декабр",
+    },
+    "ru": {
+        1: "Январь",
+        2: "Февраль",
+        3: "Март",
+        4: "Апрель",
+        5: "Май",
+        6: "Июнь",
+        7: "Июль",
+        8: "Август",
+        9: "Сентябрь",
+        10: "Октябрь",
+        11: "Ноябрь",
+        12: "Декабрь",
+    },
+    "en": {
+        1: "January",
+        2: "February",
+        3: "March",
+        4: "April",
+        5: "May",
+        6: "June",
+        7: "July",
+        8: "August",
+        9: "September",
+        10: "October",
+        11: "November",
+        12: "December",
+    },
+}
 
 # -------------------- Unified Dashboard Handler --------------------
 
@@ -106,37 +164,42 @@ def invalidate_dashboard_cache(product_id=None, region_id=None, district_id=None
 def map_heatmap_handler(qs, params):
     """
     Optimized handler for map heatmap chart.
-    - Uses shared queryset (already filtered in dashboard_handler).
-    - Aggregates with values() + annotate() for efficiency.
-    - Supports region-level and district-level drilldowns.
+    - Language-aware REGION names only
+    - District names remain unchanged
     """
 
-    product_id = params.get("product_id")
-    product_name_latin = None
-    product_name_cyrillic = None
+    from django.db.models import Avg, Max
 
-    # Always fetch product details (default: Olma)
+    # ---------------- LANGUAGE HELPER ----------------
+    def get_region_name_field():
+        lang = params.get("lang") or params.get("language") or "uz"
+
+        LANG_FIELD_MAP = {
+            "uz": "latin",
+            "cy": "cyrillic",
+            "ru": "russian",
+            "en": "english",
+        }
+        return f"region_name_{LANG_FIELD_MAP.get(lang, 'latin')}"
+
+    # ---------------- PRODUCT RESOLUTION ----------------
+    product_id = params.get("product_id")
+
     if not product_id:
         try:
             product = qs.select_related("product").first().product
             product_id = product.product_id
-            product_name_latin = product.product_name_latin
-            product_name_cyrillic = getattr(product, "product_name_cyrillic", None)
         except Exception:
             return {"chart_type": "map_heatmap", "data": []}
     else:
         try:
             from .models import Product
             product = Product.objects.get(product_id=product_id)
-            product_name_latin = product.product_name_latin
-            product_name_cyrillic = getattr(product, "product_name_cyrillic", None)
         except Product.DoesNotExist:
             return {"chart_type": "map_heatmap", "data": []}
 
-    # Filter by product_id
     qs = qs.filter(product__product_id=product_id)
 
-    # Latest available date
     latest_date = qs.aggregate(latest=Max("date"))["latest"]
 
     data_type = params.get("type", "price")
@@ -146,33 +209,26 @@ def map_heatmap_handler(qs, params):
     if region_id:
         qs = qs.filter(region__region_id=region_id)
 
-    # Helper: Uzbek date formatting
-    def format_display_date(date_str):
-        if not date_str:
-            return None
-        from datetime import datetime
-        date_obj = datetime.strptime(str(date_str), "%Y-%m-%d")
+    region_name_field = get_region_name_field()
 
-        return f"{date_obj.day} {MONTHS_UZ[date_obj.month]}, {date_obj.year}"
-
-    # -------------------- PRICE MODE --------------------
+    # ---------------- PRICE MODE ----------------
     if data_type == "price":
         date = params.get("date", latest_date)
         qs = qs.filter(date=date)
 
+        # -------- REGION LEVEL --------
         if level == "region":
             grouped = qs.values(
                 "region_id",
-                "region__region_name_latin",
-                "region__region_name_cyrillic",
+                f"region__{region_name_field}",
                 "region__hc_key"
             ).annotate(avg_price=Avg("price"))
 
             data = [
                 {
                     "region_id": g["region_id"],
-                    "region_name_latin": g["region__region_name_latin"],
-                    "region_name_cyrillic": g["region__region_name_cyrillic"],
+                    "region_name": g.get(f"region__{region_name_field}")
+                        or g.get("region__region_name_latin"),
                     "hc_key": g["region__hc_key"],
                     "product_id": product_id,
                     "date": str(date),
@@ -180,7 +236,9 @@ def map_heatmap_handler(qs, params):
                 }
                 for g in grouped
             ]
-        else:  # district-level
+
+        # -------- DISTRICT LEVEL (UNCHANGED) --------
+        else:
             grouped = qs.values(
                 "district_id",
                 "district__district_name_latin",
@@ -213,7 +271,7 @@ def map_heatmap_handler(qs, params):
                 for g in grouped
             ]
 
-    # -------------------- PRICE CHANGE MODE --------------------
+    # ---------------- PRICE CHANGE MODE ----------------
     elif data_type == "price_change":
         date = params.get("date", latest_date)
         prev_date = qs.filter(date__lt=date).aggregate(prev=Max("date"))["prev"]
@@ -221,11 +279,11 @@ def map_heatmap_handler(qs, params):
         latest_qs = qs.filter(date=date)
         prev_qs = qs.filter(date=prev_date) if prev_date else latest_qs
 
+        # -------- REGION LEVEL --------
         if level == "region":
             latest_group = latest_qs.values(
                 "region_id",
-                "region__region_name_latin",
-                "region__region_name_cyrillic",
+                f"region__{region_name_field}",
                 "region__hc_key"
             ).annotate(avg_price=Avg("price"))
 
@@ -235,8 +293,8 @@ def map_heatmap_handler(qs, params):
             data = [
                 {
                     "region_id": g["region_id"],
-                    "region_name_latin": g["region__region_name_latin"],
-                    "region_name_cyrillic": g["region__region_name_cyrillic"],
+                    "region_name": g.get(f"region__{region_name_field}")
+                        or g.get("region__region_name_latin"),
                     "hc_key": g["region__hc_key"],
                     "product_id": product_id,
                     "date": str(date),
@@ -247,7 +305,9 @@ def map_heatmap_handler(qs, params):
                 }
                 for g in latest_group
             ]
-        else:  # district-level
+
+        # -------- DISTRICT LEVEL (UNCHANGED) --------
+        else:
             latest_group = latest_qs.values(
                 "district_id",
                 "district__district_name_latin",
@@ -285,6 +345,7 @@ def map_heatmap_handler(qs, params):
                 }
                 for g in latest_group
             ]
+
     else:
         data = []
 
@@ -298,23 +359,33 @@ def product_chart_handler(qs, params):
     """
     Optimized handler for product performance chart.
     - Shows ALL products with % price change.
+    - Returns product names in requested language: uz, cy, ru, en.
     - Includes last N historical points (default: 5).
-    - Uses shared queryset (already filtered in dashboard_handler).
     """
 
     try:
+        lang = params.get("lang", "uz")
         region_id = params.get("region_id")
         district_id = params.get("district_id")
         date = params.get("date")
         data_type = params.get("type", "price")
 
-        # Apply filters (qs already filtered in dashboard_handler, but double-check)
+        LANG_FIELD_MAP = {
+            "uz": "latin",
+            "cy": "cyrillic",
+            "ru": "russian",
+            "en": "english",
+        }
+
+        name_field = f"product_name_{LANG_FIELD_MAP.get(lang, 'latin')}"
+
+        # Apply filters
         if region_id:
             qs = qs.filter(region__region_id=region_id)
         if district_id:
             qs = qs.filter(district__district_id=district_id)
 
-        # Get latest date within filters
+        # Get latest date
         latest_date = qs.aggregate(latest=Max("date"))["latest"]
         if not latest_date:
             return {"chart_type": "product_chart", "data": []}
@@ -325,55 +396,80 @@ def product_chart_handler(qs, params):
             prev_date = qs.filter(date__lt=target_date).aggregate(prev=Max("date"))["prev"]
             current_qs = qs.filter(date=target_date)
             prev_qs = qs.filter(date=prev_date) if prev_date else current_qs
-
         elif data_type == "price_change":
             target_date = latest_date
             prev_date = qs.filter(date__lt=latest_date).aggregate(prev=Max("date"))["prev"]
             current_qs = qs.filter(date=latest_date)
             prev_qs = qs.filter(date=prev_date) if prev_date else current_qs
-
         else:
             return {"chart_type": "product_chart", "data": []}
 
+        from datetime import datetime
+
+        def format_display_date(date_value):
+            if not date_value:
+                return None
+            if hasattr(date_value, "strftime"):
+                date_obj = date_value
+            else:
+                date_obj = datetime.strptime(str(date_value), "%Y-%m-%d")
+            return f"{date_obj.day} {MONTHS_BY_LANG[lang][date_obj.month]}, {date_obj.year}"
+
         # Aggregate current period data
-        current_grouped = current_qs.values(
+        current_grouped = current_qs.select_related("product").values(
             "product_id",
-            "product__product_name_latin"
+            "product__product_name_latin",
+            "product__product_name_cyrillic",
+            "product__product_name_russian",
+            "product__product_name_english"
         ).annotate(avg_price=Avg("price"))
 
         # Aggregate previous period data
         prev_grouped = prev_qs.values("product_id").annotate(avg_price=Avg("price"))
         prev_dict = {g["product_id"]: g["avg_price"] for g in prev_grouped}
 
-        # Build response for all products
         products = []
+
         for g in current_grouped:
             product_id = g["product_id"]
-            product_name = g["product__product_name_latin"] or f"Product {product_id}"
+            # Select name in requested language
+            product_name = g.get(f"product__product_name_{LANG_FIELD_MAP.get(lang, 'latin')}")
+            if not product_name:
+                # fallback to latin
+                product_name = g.get("product__product_name_latin") or f"Product {product_id}"
+
             actual_price = round(g["avg_price"] or 0, 2)
             prev_price = round(prev_dict.get(product_id, actual_price) or actual_price, 2)
 
-            # Calculate % change
-            if prev_price > 0:
-                price_change_pct = round(((actual_price - prev_price) / prev_price) * 100, 2)
-            else:
-                price_change_pct = 0.00
+            price_change_pct = (
+                round(((actual_price - prev_price) / prev_price) * 100, 2)
+                if prev_price > 0 else 0.00
+            )
 
             # Historical series (last 5 points)
             hist_qs = (
                 qs.filter(product_id=product_id)
-                .values("date")
+                .select_related("product")
+                .values(
+                    "date",
+                    "product__product_name_latin",
+                    "product__product_name_cyrillic",
+                    "product__product_name_russian",
+                    "product__product_name_english"
+                )
                 .annotate(avg_price=Avg("price"))
                 .order_by("-date")[:5]
             )
 
-            history = [
-                {
-                    "date": h["date"].isoformat() if hasattr(h["date"], "isoformat") else str(h["date"]),
-                    "price": round(h["avg_price"] or 0, 2)
-                }
-                for h in hist_qs
-            ]
+            history = []
+            for h in hist_qs:
+                hist_name = h.get(f"product__product_name_{LANG_FIELD_MAP.get(lang, 'latin')}") or h.get("product__product_name_latin")
+                history.append({
+                    "date": str(h["date"]),
+                    "date_visual": format_display_date(h["date"]),
+                    "price": round(h["avg_price"] or 0, 2),
+                    "name": hist_name
+                })
 
             products.append({
                 "product_id": product_id,
@@ -381,18 +477,18 @@ def product_chart_handler(qs, params):
                 "actual": actual_price,
                 "prev": prev_price,
                 "change_pct": price_change_pct,
-                "history": list(reversed(history))  # chronological order
+                "history": list(reversed(history)),  # chronological
             })
 
         return {
             "chart_type": "product_chart",
-            "data": products
+            "data": products,
         }
 
     except Exception as e:
         return {
             "chart_type": "product_chart",
-            "error": f"Product chart unavailable: {str(e)}"
+            "error": f"Product chart unavailable: {str(e)}",
         }
 
 
@@ -402,13 +498,23 @@ def region_chart_handler(qs, params):
     - Shows ALL regions with prices for ONE product on a given date.
     - Defaults to product "Olma" if not specified.
     - Uses shared queryset (already filtered in dashboard_handler).
+    - Returns region names in requested language: uz, cy, ru, en.
     """
 
     try:
+        lang = params.get("lang", "uz")
         product_id = params.get("product_id")
         date = params.get("date")
 
-        # Default product handling
+        LANG_FIELD_MAP = {
+            "uz": "latin",
+            "cy": "cyrillic",
+            "ru": "russian",
+            "en": "english",
+        }
+        name_field = f"region_name_{LANG_FIELD_MAP.get(lang, 'latin')}"
+
+        # -------------------- Default product --------------------
         if not product_id:
             try:
                 product = Product.objects.get(product_name_latin="Olma")
@@ -423,7 +529,7 @@ def region_chart_handler(qs, params):
         # Filter queryset to selected product
         qs = qs.filter(product__product_id=product_id)
 
-        # Get latest date within filters
+        # Latest date within filters
         latest_date = qs.aggregate(latest=Max("date"))["latest"]
         if not latest_date:
             return {"chart_type": "region_chart", "data": []}
@@ -435,21 +541,38 @@ def region_chart_handler(qs, params):
         prev_qs = qs.filter(date=prev_date) if prev_date else current_qs
 
         # Aggregate current period data
-        current_grouped = current_qs.values(
+        current_grouped = current_qs.select_related("region").values(
             "region_id",
             "region__region_name_latin",
-            "region__region_name_cyrillic"
+            "region__region_name_cyrillic",
+            "region__region_name_russian",
+            "region__region_name_english",
         ).annotate(avg_price=Avg("price"))
 
         # Aggregate previous period data
         prev_grouped = prev_qs.values("region_id").annotate(avg_price=Avg("price"))
         prev_dict = {g["region_id"]: g["avg_price"] for g in prev_grouped}
 
-        # Build response
+        # -------------------- Date formatting --------------------
+        from datetime import datetime
+
+        def format_display_date(date_value):
+            if not date_value:
+                return None
+            if hasattr(date_value, "strftime"):
+                date_obj = date_value
+            else:
+                date_obj = datetime.strptime(str(date_value), "%Y-%m-%d")
+            return f"{date_obj.day} {MONTHS_BY_LANG[lang][date_obj.month]}, {date_obj.year}"
+
+        # -------------------- Build response --------------------
         regions = []
         for g in current_grouped:
             region_id = g["region_id"]
-            region_name = g["region__region_name_latin"] or f"Region {region_id}"
+            region_name = g.get(f"region__region_name_{LANG_FIELD_MAP.get(lang, 'latin')}") \
+                          or g.get("region__region_name_latin") \
+                          or f"Region {region_id}"
+
             actual_price = round(g["avg_price"] or 0, 2)
             prev_price = round(prev_dict.get(region_id, actual_price) or actual_price, 2)
             nominal_change = round(actual_price - prev_price, 2)
@@ -464,7 +587,9 @@ def region_chart_handler(qs, params):
                 "actual": actual_price,
                 "prev": prev_price,
                 "nominal_change": nominal_change,
-                "change_pct": pct_change
+                "change_pct": pct_change,
+                "date": str(target_date),
+                "date_visual": format_display_date(target_date)
             })
 
         return {
@@ -487,14 +612,26 @@ def district_chart_handler(qs, params):
     - Defaults to product "Olma" if not specified.
     - Includes region_id for each district.
     - Uses shared queryset (already filtered in dashboard_handler).
+    - Returns district and region names in requested language: uz, cy, ru, en.
     """
 
     try:
+        lang = params.get("lang", "uz")
         product_id = params.get("product_id")
         date = params.get("date")
         region_id = params.get("region_id")
 
-        # Default product handling
+        LANG_FIELD_MAP = {
+            "uz": "latin",
+            "cy": "cyrillic",
+            "ru": "russian",
+            "en": "english",
+        }
+
+        district_name_field = f"district__district_name_{LANG_FIELD_MAP.get(lang, 'latin')}"
+        region_name_field = f"region__region_name_{LANG_FIELD_MAP.get(lang, 'latin')}"
+
+        # -------------------- Default product --------------------
         if not product_id:
             try:
                 product = Product.objects.get(product_name_latin="Olma")
@@ -509,11 +646,11 @@ def district_chart_handler(qs, params):
         # Filter queryset to selected product
         qs = qs.filter(product__product_id=product_id)
 
-        # Region filter
+        # Filter by region if provided
         if region_id:
             qs = qs.filter(region__region_id=region_id)
 
-        # Get latest date within filters
+        # Latest date within filters
         latest_date = qs.aggregate(latest=Max("date"))["latest"]
         if not latest_date:
             return {"chart_type": "district_chart", "data": []}
@@ -525,25 +662,43 @@ def district_chart_handler(qs, params):
         prev_qs = qs.filter(date=prev_date) if prev_date else current_qs
 
         # Aggregate current period data
-        current_grouped = current_qs.values(
+        current_grouped = current_qs.select_related("district", "region").values(
             "district_id",
+            "region_id",
             "district__district_name_latin",
             "district__district_name_cyrillic",
-            "region_id",
+            "district__district_name_russian",
+            "district__district_name_english",
             "region__region_name_latin",
-            "region__region_name_cyrillic"
+            "region__region_name_cyrillic",
+            "region__region_name_russian",
+            "region__region_name_english"
         ).annotate(avg_price=Avg("price"))
 
         # Aggregate previous period data
         prev_grouped = prev_qs.values("district_id").annotate(avg_price=Avg("price"))
         prev_dict = {g["district_id"]: g["avg_price"] for g in prev_grouped}
 
-        # Build response
+        # -------------------- Date formatting --------------------
+        from datetime import datetime
+
+        def format_display_date(date_value):
+            if not date_value:
+                return None
+            if hasattr(date_value, "strftime"):
+                date_obj = date_value
+            else:
+                date_obj = datetime.strptime(str(date_value), "%Y-%m-%d")
+            return f"{date_obj.day} {MONTHS_BY_LANG[lang][date_obj.month]}, {date_obj.year}"
+
+        # -------------------- Build response --------------------
         districts = []
         for g in current_grouped:
             district_id = g["district_id"]
-            district_name = g["district__district_name_latin"] or f"District {district_id}"
             region_id = g["region_id"]
+
+            district_name = g.get(district_name_field) or g.get("district__district_name_latin") or f"District {district_id}"
+            region_name = g.get(region_name_field) or g.get("region__region_name_latin") or f"Region {region_id}"
 
             actual_price = round(g["avg_price"] or 0, 2)
             prev_price = round(prev_dict.get(district_id, actual_price) or actual_price, 2)
@@ -556,11 +711,14 @@ def district_chart_handler(qs, params):
             districts.append({
                 "district_id": district_id,
                 "region_id": region_id,
-                "name": district_name,
+                "district_name": district_name,
+                "region_name": region_name,
                 "actual": actual_price,
                 "prev": prev_price,
                 "nominal_change": nominal_change,
-                "change_pct": pct_change
+                "change_pct": pct_change,
+                "date": str(target_date),
+                "date_visual": format_display_date(target_date)
             })
 
         return {
@@ -841,75 +999,73 @@ def stacked_column_handler(qs, params):
 
 
 def global_metadata_handler(qs, params):
-    """
-    Global metadata handler — OUTPUT MATCHES PREVIOUS VERSION EXACTLY
-    (Required for JS dashboard compatibility)
-    """
-
     from django.db.models import Max
     from datetime import datetime
     from .models import Product, Region, District
+
+    # ✅ language comes from params (injected by DashboardAPIView)
+    lang = params.get("lang", "uz")
 
     product_id = params.get("product_id")
     district_id = params.get("district_id")
     region_id = params.get("region_id")
 
-    product_name_latin = None
-    product_name_cyrillic = None
-    region_name_latin = None
-    region_name_cyrillic = None
-    district_name_latin = None
-    district_name_cyrillic = None
+    product_name = None
+    region_name = None
+    district_name = None
+
+    LANG_FIELD_MAP = {
+        "uz": "latin",
+        "cy": "cyrillic",
+        "ru": "russian",
+        "en": "english",
+    }
+
+    def get_name(obj, prefix):
+        field = f"{prefix}_name_{LANG_FIELD_MAP.get(lang, 'latin')}"
+        return getattr(obj, field, None)
 
     # -------------------- AUTO-RESOLVE REGION FROM DISTRICT --------------------
     if district_id and not region_id:
         try:
             district = District.objects.select_related("region").get(district_id=district_id)
+            district_name = get_name(district, "district")
+
             if district.region:
                 region_id = district.region.region_id
-                region_name_latin = district.region.region_name_latin
-                region_name_cyrillic = district.region.region_name_cyrillic
-            district_name_latin = district.district_name_latin
-            district_name_cyrillic = district.district_name_cyrillic
+                region_name = get_name(district.region, "region")
         except District.DoesNotExist:
             pass
 
-    # -------------------- PRODUCT HANDLING --------------------
-    if not product_id:
-        try:
+    # -------------------- PRODUCT --------------------
+    try:
+        if product_id:
+            product = Product.objects.get(product_id=product_id)
+        else:
             product = Product.objects.get(product_name_latin="Olma")
             product_id = product.product_id
-            product_name_latin = product.product_name_latin
-            product_name_cyrillic = product.product_name_cyrillic
-        except Product.DoesNotExist:
-            pass
-    else:
-        try:
-            product = Product.objects.get(product_id=product_id)
-            product_name_latin = product.product_name_latin
-            product_name_cyrillic = getattr(product, "product_name_cyrillic", None)
-        except Product.DoesNotExist:
-            pass
 
-    # -------------------- REGION HANDLING --------------------
-    if region_id and not region_name_latin:
+        product_name = get_name(product, "product")
+    except Product.DoesNotExist:
+        pass
+
+    # -------------------- REGION --------------------
+    if region_id and not region_name:
         try:
             region = Region.objects.get(region_id=region_id)
-            region_name_latin = region.region_name_latin
-            region_name_cyrillic = region.region_name_cyrillic
+            region_name = get_name(region, "region")
         except Region.DoesNotExist:
             pass
 
-    # -------------------- DISTRICT HANDLING --------------------
-    if district_id and not district_name_latin:
+    # -------------------- DISTRICT --------------------
+    if district_id and not district_name:
         try:
             district = District.objects.get(district_id=district_id)
-            district_name_latin = district.district_name_latin
-            district_name_cyrillic = district.district_name_cyrillic
+            district_name = get_name(district, "district")
         except District.DoesNotExist:
             pass
 
-    # -------------------- FILTER QS (MATCHES OLD LOGIC) --------------------
+    # -------------------- FILTER QS --------------------
     product_qs = qs
     if product_id:
         product_qs = product_qs.filter(product__product_id=product_id)
@@ -921,24 +1077,19 @@ def global_metadata_handler(qs, params):
     latest_date = product_qs.aggregate(latest=Max("date"))["latest"]
     active_date = params.get("date", latest_date)
 
-    # -------------------- DATE FORMATTER (EXACT MATCH) --------------------
-
-    def format_display_date(date_str):
-        if not date_str:
+    # -------------------- DATE FORMAT --------------------
+    def format_display_date(date_value):
+        if not date_value:
             return None
-        date_obj = datetime.strptime(str(date_str), "%Y-%m-%d")
-        return f"{date_obj.day} {MONTHS_UZ[date_obj.month]}, {date_obj.year}"
 
-    # -------------------- DATE OPTIONS --------------------
-    date_options = list(
-        product_qs.dates("date", "day").values_list("date", flat=True)
-    )
+        if hasattr(date_value, "strftime"):
+            date_obj = date_value
+        else:
+            date_obj = datetime.strptime(str(date_value), "%Y-%m-%d")
 
-    date_options_interface = [
-        format_display_date(date) for date in date_options
-    ]
+        return f"{date_obj.day} {MONTHS_BY_LANG[lang][date_obj.month]}, {date_obj.year}"
 
-    # -------------------- FINAL RESPONSE (IDENTICAL TO PREVIOUS) --------------------
+    # -------------------- FINAL RESPONSE --------------------
     return {
         "filters": {
             "product_id": str(product_id) if product_id else None,
@@ -947,16 +1098,18 @@ def global_metadata_handler(qs, params):
             "date": str(active_date) if active_date else None,
         },
         "interface_text": {
-            "product_name_latin": product_name_latin,
-            "product_name_cyrillic": product_name_cyrillic,
-            "region_name_latin": region_name_latin,
-            "region_name_cyrillic": region_name_cyrillic,
-            "district_name_latin": district_name_latin,
-            "district_name_cyrillic": district_name_cyrillic,
+            "product_name": product_name,
+            "region_name": region_name,
+            "district_name": district_name,
             "date_visual": format_display_date(active_date),
         },
-        "date_options": date_options,
-        "date_options_interface": date_options_interface,
+        "date_options": list(
+            product_qs.dates("date", "day").values_list("date", flat=True)
+        ),
+        "date_options_interface": [
+            format_display_date(d)
+            for d in product_qs.dates("date", "day").values_list("date", flat=True)
+        ],
     }
 
 

@@ -187,9 +187,16 @@ class LatestPriceByProductAPIView(LoginRequiredMixin, APIView):
     """
     Returns latest average price by product,
     nominal change vs previous period,
-    and percentage change.
-    Zero change is returned as 0 (not null).
+    percentage change,
+    with product name localized by LANGUAGE_CODE.
     """
+
+    LANG_FIELD_MAP = {
+        "uz": "product_name_latin",
+        "cy": "product_name_cyrillic",
+        "ru": "product_name_russian",
+        "en": "product_name_english",
+    }
 
     def get_latest_date(self):
         return PriceObservation.objects.aggregate(
@@ -204,28 +211,34 @@ class LatestPriceByProductAPIView(LoginRequiredMixin, APIView):
             ["prev"]
         )
 
-    def get_avg_prices_by_product(self, date):
+    def get_avg_prices_by_product(self, date, name_field):
         return (
             PriceObservation.objects
             .filter(date=date)
-            .values("product_id", "product__product_name_latin")
+            .values(
+                "product_id",
+                f"product__{name_field}"
+            )
             .annotate(avg_price=Avg("price"))
         )
 
     def get(self, request):
+        lang = request.LANGUAGE_CODE or "uz"
+        name_field = self.LANG_FIELD_MAP.get(lang, "product_name_latin")
+
         latest_date = self.get_latest_date()
         if not latest_date:
             return Response([])
 
         previous_date = self.get_previous_date(latest_date)
 
-        latest_prices = self.get_avg_prices_by_product(latest_date)
+        latest_prices = self.get_avg_prices_by_product(latest_date, name_field)
 
         previous_prices = {}
         if previous_date:
             previous_prices = {
                 row["product_id"]: row["avg_price"]
-                for row in self.get_avg_prices_by_product(previous_date)
+                for row in self.get_avg_prices_by_product(previous_date, name_field)
             }
 
         response = []
@@ -236,19 +249,21 @@ class LatestPriceByProductAPIView(LoginRequiredMixin, APIView):
             prev_price = previous_prices.get(product_id)
 
             # ----- CHANGE CALCULATIONS -----
-            if prev_price is not None:
-                nominal_change = latest_price - prev_price
-            else:
-                nominal_change = 0
+            nominal_change = (
+                latest_price - prev_price
+                if prev_price is not None
+                else 0
+            )
 
-            if prev_price not in (None, 0):
-                percentage_change = (nominal_change / prev_price) * 100
-            else:
-                percentage_change = 0
+            percentage_change = (
+                (nominal_change / prev_price) * 100
+                if prev_price not in (None, 0)
+                else 0
+            )
 
             response.append({
                 "product_id": product_id,
-                "product_name": row["product__product_name_latin"],
+                "product_name": row.get(f"product__{name_field}"),
                 "latest_price": round(latest_price, 2),
                 "previous_price": round(prev_price, 2) if prev_price is not None else None,
                 "nominal_change": round(nominal_change, 2),
@@ -261,22 +276,21 @@ class LatestPriceByProductAPIView(LoginRequiredMixin, APIView):
 class DashboardAPIView(APIView, LoginRequiredMixin):
     def get(self, request):
         qs = PriceObservation.objects.all()
-        params = request.query_params
+
+        params = request.query_params.copy()
+        params["lang"] = request.LANGUAGE_CODE  # ✅ inject language
 
         result = {
-            "global_metadata": None,  # Pre-initialize
+            "global_metadata": None,
             "charts": {}
         }
 
-        # Execute ALL registered handlers
         for chart_key, handler in CHART_HANDLERS.items():
             try:
                 chart_data = handler(qs, params)
                 if chart_key == "global_metadata":
-                    # Store global_metadata at top level ONLY
                     result["global_metadata"] = chart_data
                 else:
-                    # Other charts go to charts object
                     result["charts"][chart_key] = chart_data
             except Exception as e:
                 if chart_key == "global_metadata":
@@ -339,26 +353,37 @@ def get_change_by_offset(product, region=None, offset=1):
 
 class ProductPerformanceView(APIView):
     def get(self, request):
+        # --- Step 0: determine language ---
+        lang = getattr(request, "LANGUAGE_CODE", "uz")
+        LANG_FIELD_MAP = {
+            "uz": "latin",
+            "cy": "cyrillic",
+            "ru": "russian",
+            "en": "english",
+        }
+        name_field = f"product_name_{LANG_FIELD_MAP.get(lang, 'latin')}"
+
         # --- Step 1: find latest observation date in DB ---
         latest_date = PriceObservation.objects.aggregate(max_date=Max("date"))["max_date"]
 
-        # --- Step 2: check cache ---
-        cached = cache.get("products_performance")
+        # --- Step 2: check cache (language-aware) ---
+        cache_key = f"products_performance_{lang}"
+        cached = cache.get(cache_key)
         if cached and cached.get("latest_date") == latest_date:
-            # serve cached payload
             return Response({"products": cached["data"]})
 
         # --- Step 3: recompute fresh data ---
         products_data = []
 
         for product in Product.objects.all():
+            product_name = getattr(product, name_field, product.product_name_latin)
+
             qs = (
                 PriceObservation.objects.filter(product=product)
                 .values("date")
                 .annotate(avg_price=Avg("price"))
                 .order_by("-date")
             )
-
             if not qs.exists():
                 continue
 
@@ -371,7 +396,7 @@ class ProductPerformanceView(APIView):
 
             product_data = {
                 "product_id": product.product_id,
-                "name": product.product_name_latin,
+                "name": product_name,
                 "price": round(latest_price, 2),
                 "prevPrice": round(prev_price, 2) if prev_price else None,
                 "change": change_info,
@@ -388,6 +413,9 @@ class ProductPerformanceView(APIView):
 
             # Region-level performance
             for region in Region.objects.all():
+                region_name_field = f"region_name_{LANG_FIELD_MAP.get(lang, 'latin')}"
+                region_name = getattr(region, region_name_field, region.region_name_latin)
+
                 qs_region = (
                     PriceObservation.objects.filter(product=product, region=region)
                     .values("date")
@@ -406,7 +434,7 @@ class ProductPerformanceView(APIView):
                 region_change_info = calculate_change(latest_region_price, prev_region_price)
 
                 region_data = {
-                    "name": region.region_name_latin,
+                    "name": region_name,
                     "price": round(latest_region_price, 2),
                     "prevPrice": round(prev_region_price, 2) if prev_region_price else None,
                     "change": region_change_info,
@@ -424,8 +452,8 @@ class ProductPerformanceView(APIView):
 
             products_data.append(product_data)
 
-        # --- Step 4: update cache ---
-        cache.set("products_performance", {
+        # --- Step 4: update cache (language-aware) ---
+        cache.set(cache_key, {
             "latest_date": latest_date,
             "data": products_data
         }, timeout=None)

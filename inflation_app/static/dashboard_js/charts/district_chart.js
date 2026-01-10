@@ -144,8 +144,8 @@ function renderDistrictChart(districts) {
       nameEl.style.textOverflow = "ellipsis";
       nameEl.style.overflow = "hidden";
       nameEl.style.whiteSpace = "nowrap";
-      nameEl.title = district.name;
-      nameEl.textContent = district.name;
+      nameEl.title = district.district_name;
+      nameEl.textContent = district.district_name;
       row.appendChild(nameEl);
 
       const actualEl = document.createElement("div");
