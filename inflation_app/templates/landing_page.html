@@ -32,7 +32,17 @@
 }
 
 </style>
+<!--footer-->
+<style>
+    .footerInfo {
+  white-space: nowrap;        /* Prevent line breaks */
+  overflow: hidden;           /* Hide overflowing text */
+  text-overflow: ellipsis;    /* Show "..." when text overflows */
+  display: block;             /* Ensure it works properly */
+  max-width: 100%;            /* Restrict width to container */
+}
 
+</style>
 <style>
     .ticker-wrap {
         overflow: hidden;
@@ -474,8 +484,6 @@
 </style>
 
 
-{% load static i18n %}
-
 <div class="container-fluid">
     <div class="row">
         <!-- Main Content -->
@@ -497,7 +505,7 @@
                     <!-- Card Grid -->
                     <div class="row g-1">
                         <!-- Card 1 -->
-                        <div class="col-12 col-md-6 col-lg-4 mb-3 d-flex">
+                        <div class="col-12 col-md-6 col-lg-4 mb-2 d-flex">
                             <div class="card flex-fill card-full shadow-sm">
                                 <div class="card-header d-flex justify-content-between align-items-center">
                                     <h6 class="mb-0">{% trans "Viloyatlar va tumanlar kesimida narxlar darajasi" %}</h6>
@@ -524,7 +532,7 @@
                         </div>
 
                         <!-- Card 2 -->
-                        <div class="col-12 col-md-6 col-lg-4 mb-3 d-flex">
+                        <div class="col-12 col-md-6 col-lg-4 mb-2 d-flex">
                             <div class="card flex-fill card-full shadow-sm">
                                 <div class="card-header d-flex justify-content-between align-items-center">
                                     <h6 class="mb-0">{% trans "Hududlar kesimida narxlar dinamikasi" %}</h6>
@@ -551,7 +559,7 @@
                         </div>
 
                         <!-- Card 3 -->
-                        <div class="col-12 col-md-6 col-lg-4 mb-3 d-flex">
+                        <div class="col-12 col-md-6 col-lg-4 mb-2 d-flex">
                             <div class="card flex-fill card-full shadow-sm">
                                 <div class="card-header d-flex justify-content-between align-items-center">
                                     <h6 class="mb-0">{% trans "Hududlarning umumiy narx oʻzgarishiga hissasi" %}</h6>
@@ -578,7 +586,7 @@
                         </div>
 
                         <!-- Card 4 -->
-                        <div class="col-12 col-md-6 col-lg-4 mb-3 d-flex">
+                        <div class="col-12 col-md-6 col-lg-4 mb-2 d-flex">
                             <div class="card flex-fill card-full shadow-sm">
                                 <div class="card-header d-flex justify-content-between align-items-center">
                                     <h6 class="mb-0">{% trans "Mahsulotlar kesimida narxlar dinamikasi" %}</h6>
@@ -605,7 +613,7 @@
                         </div>
 
                         <!-- Card 5 -->
-                        <div class="col-12 col-md-6 col-lg-4 mb-3 d-flex">
+                        <div class="col-12 col-md-6 col-lg-4 mb-2 d-flex">
                             <div class="card flex-fill card-full shadow-sm">
                                 <div class="card-header d-flex justify-content-between align-items-center">
                                     <h6 class="mb-0">{% trans "Tumanlar kesimida narxlar dinamikasi" %}</h6>
@@ -632,7 +640,7 @@
                         </div>
 
                         <!-- Card 6 -->
-                        <div class="col-12 col-md-6 col-lg-4 mb-3 d-flex">
+                        <div class="col-12 col-md-6 col-lg-4 mb-2 d-flex">
                             <div class="card flex-fill card-full shadow-sm">
                                 <div class="card-header d-flex justify-content-between align-items-center">
                                     <h6 class="mb-0">{% trans "Hududlar kesimida narx oʻzgarishlari dinamikasi" %}</h6>
@@ -712,8 +720,8 @@
   margin-right: -0.25rem;
 }
 .row > [class*="col-"] {
-  padding-left: 0.25rem;
-  padding-right: 0.25rem;
+  padding-left: 0.2rem;
+  padding-right: 0.2rem;
 }
 
 </style>

@@ -10,7 +10,7 @@ function renderStackedColumnChart(columnData) {
     const seriesData = columnData.series;
     const periodTotals = columnData.period_totals || [];
 
-    const productName = currentInterfaceText?.product_name_latin || gettext("Unknown product");
+    const productName = currentInterfaceText?.product_name || gettext("Unknown product");
     const dateVisual = currentInterfaceText?.date_visual || "";
 
     let subtitleParts = [];

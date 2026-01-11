@@ -120,7 +120,7 @@ msgstr "Foizda (%)"
 
 #: inflation_app/static/dashboard_js/charts/stacked_column_chart.js:93
 msgid "Total"
-msgstr ""
+msgstr "Umumiy"
 
 #: inflation_app/static/widgets/right_sidebar.js:46
 msgid "Error fetching products:"

@@ -1,5 +1,7 @@
 {% load static i18n %}
+{% load dict_extras %}
 {% get_current_language as LANGUAGE_CODE %}
+
 <style>
     .navbar-logo {
         height: 36px;
@@ -35,7 +37,7 @@
             <img src="{% static 'assets/images/logo.svg' %}"
                  alt="Narxlar va Hududlar"
                  class="navbar-logo mr-3">
-            <span class="h5 mb-0">Narx tahlili</span>
+            <span class="h5 mb-0">{% trans "Narx tahlili" %}</span>
         </a>
 
         <!-- Sidebar Toggle -->
@@ -67,7 +69,7 @@
 
                     <i class="fe fe-globe fe-16 mr-1"></i>
                     <span class="text-uppercase small font-weight-bold">
-                        {{ LANGUAGE_CODE }}
+                        {{ LANGUAGE_NAME_MAP|dict_get:LANGUAGE_CODE }}
                     </span>
                 </a>
 
@@ -85,18 +87,18 @@
 
                         <button type="submit" name="language" value="cy"
                                 class="dropdown-item {% if LANGUAGE_CODE == 'cy' %}active{% endif %}">
-                            Ўзbekcha {% if LANGUAGE_CODE == 'cy' %}<span class="float-right">✓</span>{% endif %}
+                            Ўзбекча {% if LANGUAGE_CODE == 'cy' %}<span class="float-right">✓</span>{% endif %}
                         </button>
 
-                        <button type="submit" name="language" value="ru"
-                                class="dropdown-item {% if LANGUAGE_CODE == 'ru' %}active{% endif %}">
-                            Русский {% if LANGUAGE_CODE == 'ru' %}<span class="float-right">✓</span>{% endif %}
-                        </button>
+                        <!--                        <button type="submit" name="language" value="ru"-->
+                        <!--                                class="dropdown-item {% if LANGUAGE_CODE == 'ru' %}active{% endif %}">-->
+                        <!--                            Русский {% if LANGUAGE_CODE == 'ru' %}<span class="float-right">✓</span>{% endif %}-->
+                        <!--                        </button>-->
 
-                        <button type="submit" name="language" value="en"
-                                class="dropdown-item {% if LANGUAGE_CODE == 'en' %}active{% endif %}">
-                            English {% if LANGUAGE_CODE == 'en' %}<span class="float-right">✓</span>{% endif %}
-                        </button>
+                        <!--                        <button type="submit" name="language" value="en"-->
+                        <!--                                class="dropdown-item {% if LANGUAGE_CODE == 'en' %}active{% endif %}">-->
+                        <!--                            English {% if LANGUAGE_CODE == 'en' %}<span class="float-right">✓</span>{% endif %}-->
+                        <!--                        </button>-->
                     </form>
                 </div>
             </li>

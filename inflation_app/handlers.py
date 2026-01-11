@@ -73,6 +73,7 @@ MONTHS_BY_LANG = {
     },
 }
 
+
 # -------------------- Unified Dashboard Handler --------------------
 
 
@@ -91,8 +92,50 @@ def dashboard_handler(params):
     """
     Unified dashboard handler:
     - Uses Redis caching with get_or_set
-    - Shares a filtered queryset for all charts
-    - Returns a single JSON payload
+    - Shares a queryset for all charts
+    - Returns a single JSON payload with 'global_metadata' and 'charts'
+    - Hybrid filtering: some charts use filtered queryset, others use full queryset
+    """
+
+    # Base queryset (unfiltered)
+    qs = PriceObservation.objects.select_related("product", "region", "district")
+
+    # Build a filtered queryset for charts that should respect filters
+    filtered_qs = qs
+    if params.get("product_id"):
+        filtered_qs = filtered_qs.filter(product__product_id=params["product_id"])
+    if params.get("region_id"):
+        filtered_qs = filtered_qs.filter(region__region_id=params["region_id"])
+    if params.get("district_id"):
+        filtered_qs = filtered_qs.filter(district__district_id=params["district_id"])
+
+    # Inner function to build response (used by cache)
+    def build_response():
+        return {
+            "global_metadata": global_metadata_handler(filtered_qs, params),
+            "charts": {
+                # ✅ Charts that should respect filters
+                "map_heatmap": map_heatmap_handler(filtered_qs, params),
+                "district_chart": district_chart_handler(filtered_qs, params),
+                "linegraph_chart": linegraph_chart_handler(filtered_qs, params),
+                "stacked_column_chart": stacked_column_handler(filtered_qs, params),
+
+                # ✅ Charts that should show all products/regions (unfiltered)
+                "product_chart": product_chart_handler(qs, params),
+                "region_chart": region_chart_handler(qs, params),
+            }
+        }
+
+    # Cache key for the entire dashboard
+    cache_key = build_cache_key(params, chart_type="all")
+    return cache.get_or_set(cache_key, build_response, CACHE_TIMEOUT)
+
+
+def dashboard_handler_no_cache(params):
+    """
+    Unified dashboard handler without Redis caching.
+    Always computes fresh results directly from the database.
+    Returns payload with 'global_metadata' and 'charts' keys.
     """
 
     # Shared queryset (with select_related for performance)
@@ -106,22 +149,19 @@ def dashboard_handler(params):
     if params.get("district_id"):
         qs = qs.filter(district__district_id=params["district_id"])
 
-    # Inner function to build response (used by cache)
-    def build_response():
-        response = {
+    # Build response directly (no cache)
+    response = {
+        "global_metadata": global_metadata_handler(qs, params),
+        "charts": {
             "map_heatmap": map_heatmap_handler(qs, params),
             "product_chart": product_chart_handler(qs, params),
             "region_chart": region_chart_handler(qs, params),
             "district_chart": district_chart_handler(qs, params),
-            "linegraph": linegraph_chart_handler(qs, params),
-            "stacked_column": stacked_column_handler(qs, params),
-            "metadata": global_metadata_handler(qs, params),
+            "linegraph_chart": linegraph_chart_handler(qs, params),
+            "stacked_column_chart": stacked_column_handler(qs, params),
         }
-        return response
-
-    # Cache key for the entire dashboard
-    cache_key = build_cache_key(params, chart_type="all")
-    return cache.get_or_set(cache_key, build_response, CACHE_TIMEOUT)
+    }
+    return response
 
 
 # -------------------- Individual chart caching --------------------
@@ -228,7 +268,7 @@ def map_heatmap_handler(qs, params):
                 {
                     "region_id": g["region_id"],
                     "region_name": g.get(f"region__{region_name_field}")
-                        or g.get("region__region_name_latin"),
+                                   or g.get("region__region_name_latin"),
                     "hc_key": g["region__hc_key"],
                     "product_id": product_id,
                     "date": str(date),
@@ -294,7 +334,7 @@ def map_heatmap_handler(qs, params):
                 {
                     "region_id": g["region_id"],
                     "region_name": g.get(f"region__{region_name_field}")
-                        or g.get("region__region_name_latin"),
+                                   or g.get("region__region_name_latin"),
                     "hc_key": g["region__hc_key"],
                     "product_id": product_id,
                     "date": str(date),
@@ -463,7 +503,8 @@ def product_chart_handler(qs, params):
 
             history = []
             for h in hist_qs:
-                hist_name = h.get(f"product__product_name_{LANG_FIELD_MAP.get(lang, 'latin')}") or h.get("product__product_name_latin")
+                hist_name = h.get(f"product__product_name_{LANG_FIELD_MAP.get(lang, 'latin')}") or h.get(
+                    "product__product_name_latin")
                 history.append({
                     "date": str(h["date"]),
                     "date_visual": format_display_date(h["date"]),
@@ -697,7 +738,8 @@ def district_chart_handler(qs, params):
             district_id = g["district_id"]
             region_id = g["region_id"]
 
-            district_name = g.get(district_name_field) or g.get("district__district_name_latin") or f"District {district_id}"
+            district_name = g.get(district_name_field) or g.get(
+                "district__district_name_latin") or f"District {district_id}"
             region_name = g.get(region_name_field) or g.get("region__region_name_latin") or f"Region {region_id}"
 
             actual_price = round(g["avg_price"] or 0, 2)
@@ -737,19 +779,24 @@ def district_chart_handler(qs, params):
 def linegraph_chart_handler(qs, params):
     """
     Optimized handler for Highcharts line graph showing WEEKLY price time series.
-    - Always returns a full 52-week cycle ending at the latest available week.
+    - Always returns a full 52-week cycle ending at the provided date (if given) or latest available week.
     - Uses actual distinct DB dates (no artificial week boundary computation).
+    - Language-aware region/district names (uz, cy, ru, en).
     """
 
-    WEEKS_IN_YEAR = 52
+    WEEKS_IN_YEAR = 104
     DEFAULT_PRODUCT_NAME = "Olma"
 
-    # ✅ FIXED Uzbek month names (NO DUPLICATES)
-
-    def format_uzbek_date(date_obj):
-        if not date_obj:
-            return None
-        return f"{date_obj.day} {MONTHS_UZ[date_obj.month]}, {date_obj.year}"
+    # -------------------- Language awareness --------------------
+    lang = params.get("lang", "uz")
+    LANG_FIELD_MAP = {
+        "uz": "latin",
+        "cy": "cyrillic",
+        "ru": "russian",
+        "en": "english",
+    }
+    district_name_field = f"district_name_{LANG_FIELD_MAP.get(lang, 'latin')}"
+    region_name_field = f"region_name_{LANG_FIELD_MAP.get(lang, 'latin')}"
 
     def format_date_ddmmyyyy(date_obj):
         if not date_obj:
@@ -782,22 +829,34 @@ def linegraph_chart_handler(qs, params):
         qs = qs.filter(district__district_id=params["district_id"])
 
     # -------------------- DATE WINDOW --------------------
-    latest_date = qs.aggregate(latest=Max("date"))["latest"]
-    if not latest_date:
+    # If user provided a date, use it; otherwise use latest available
+    provided_date = params.get("date")
+    if provided_date:
+        try:
+            from datetime import datetime
+            end_date = datetime.strptime(str(provided_date), "%Y-%m-%d").date()
+        except Exception:
+            # fallback if parsing fails
+            end_date = qs.aggregate(latest=Max("date"))["latest"]
+    else:
+        end_date = qs.aggregate(latest=Max("date"))["latest"]
+
+    if not end_date:
         return {"chart_type": "linegraph", "data": []}
 
-    # Use actual DB dates, not computed week boundaries
-    end_date = latest_date
-
     # Get distinct ordered dates
-    dates = (
-        qs.values_list("date", flat=True)
-        .distinct()
-        .order_by("date")
-    )
+    dates = qs.values_list("date", flat=True).distinct().order_by("date")
 
-    if dates.count() >= WEEKS_IN_YEAR:
-        start_date = dates[dates.count() - WEEKS_IN_YEAR]
+    # Find the index of end_date in the list of dates
+    if end_date in dates:
+        end_index = list(dates).index(end_date)
+    else:
+        # fallback: use last index
+        end_index = dates.count() - 1
+
+    # Calculate start_date 52 weeks before end_date (or earliest available)
+    if dates.count() >= WEEKS_IN_YEAR and end_index >= WEEKS_IN_YEAR - 1:
+        start_date = list(dates)[end_index - (WEEKS_IN_YEAR - 1)]
     else:
         start_date = dates.first()
 
@@ -823,10 +882,8 @@ def linegraph_chart_handler(qs, params):
 
     if params.get("district_id"):
         district_obj = qs.select_related("district").first()
-        district_name = (
-            district_obj.district.district_name_latin
-            if district_obj else f"District {params['district_id']}"
-        )
+        district_name = getattr(district_obj.district, district_name_field, None) \
+                        if district_obj else f"District {params['district_id']}"
         series.append(generate_weekly_series(qs, district_name))
 
     elif params.get("region_id"):
@@ -834,10 +891,11 @@ def linegraph_chart_handler(qs, params):
             district_id__in=qs.values_list("district__district_id", flat=True).distinct()
         )
         for district in districts:
+            name = getattr(district, district_name_field, None) or district.district_name_latin
             series.append(
                 generate_weekly_series(
                     qs.filter(district__district_id=district.district_id),
-                    district.district_name_latin
+                    name
                 )
             )
 
@@ -846,10 +904,11 @@ def linegraph_chart_handler(qs, params):
             region_id__in=qs.values_list("region__region_id", flat=True).distinct()
         )
         for region in regions:
+            name = getattr(region, region_name_field, None) or region.region_name_latin
             series.append(
                 generate_weekly_series(
                     qs.filter(region__region_id=region.region_id),
-                    region.region_name_latin
+                    name
                 )
             )
 
@@ -871,16 +930,25 @@ def stacked_column_handler(qs, params):
     - Uses ALL unique dates but ONLY returns non-zero contribution periods.
     - Filters by product_id (default: "Olma").
     - Includes separate totals per period.
+    - Language-aware region names (uz, cy, ru, en).
     - Uses shared queryset (already filtered in dashboard_handler).
     """
 
-    # Uzbek month names
+    # -------------------- Language awareness --------------------
+    lang = params.get("lang", "uz")
+    LANG_FIELD_MAP = {
+        "uz": "latin",
+        "cy": "cyrillic",
+        "ru": "russian",
+        "en": "english",
+    }
+    region_name_field = f"region_name_{LANG_FIELD_MAP.get(lang, 'latin')}"
 
     def format_display_date(date_obj):
         """Format date as '17 Dekabr, 2025'"""
         if not date_obj:
             return None
-        return f"{date_obj.day} {MONTHS_UZ[date_obj.month]}, {date_obj.year}"
+        return f"{date_obj.day} {MONTHS_BY_LANG[lang][date_obj.month]}, {date_obj.year}"
 
     def format_date_ddmmyyyy(date_obj):
         if not date_obj:
@@ -928,7 +996,12 @@ def stacked_column_handler(qs, params):
         }
 
     # -------------------- SERIES INITIALIZATION --------------------
-    series = [{"name": region.region_name_latin, "data": []} for region in regions]
+    series = []
+    for region in regions:
+        # Pick name in requested language, fallback to Latin
+        name = getattr(region, region_name_field, None) or region.region_name_latin or f"Region {region.region_id}"
+        series.append({"name": name, "data": []})
+
     date_labels = []
     period_totals = []
     valid_period_contributions = []

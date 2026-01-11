@@ -71,6 +71,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                "inflation_app.context_processors.language_name_map",
             ],
         },
     },
@@ -125,8 +126,6 @@ AUTH_PASSWORD_VALIDATORS = [
 
 TIME_ZONE = "Asia/Tashkent"
 
-USE_I18N = True
-
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
@@ -148,17 +147,20 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000000
 
 # USE_I18N = True
-USE_L10N = True
+
 
 LANGUAGE_CODE = 'cy'
-
+USE_I18N = True
+USE_L10N = True
 LANGUAGES = [
     ('uz', _('Oʻzbekcha')),
     ('cy', _('Ўзбекча')),
-    ('ru', _('Русский')),
-    ('en', _('English')),
 ]
 
 LOCALE_PATHS = [
     BASE_DIR / 'locale',
 ]
+LANGUAGE_NAME_MAP = {
+    "uz": "Oʻzbekcha",
+    "cy": "Ўзбекча",
+}

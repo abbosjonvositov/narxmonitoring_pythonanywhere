@@ -27,9 +27,9 @@ function renderLinegraphChart(linegraphData) {
       };
     });
 
-    const productName = currentInterfaceText?.product_name_latin || gettext("Unknown product");
-    const regionName = currentInterfaceText?.region_name_latin || "";
-    const districtName = currentInterfaceText?.district_name_latin || "";
+    const productName = currentInterfaceText?.product_name || gettext("Unknown product");
+    const regionName = currentInterfaceText?.region_name || "";
+    const districtName = currentInterfaceText?.district_name || "";
     const dateVisual = currentInterfaceText?.date_visual || "";
 
     let subtitleParts = [productName];
@@ -79,7 +79,12 @@ function renderLinegraphChart(linegraphData) {
         categories: categories,
         title: { text: gettext("Sana"), style: { color: textColor } },
         labels: { rotation: -45, style: { color: textColor } },
-        gridLineWidth: 0
+        gridLineWidth: 0,
+        crosshair: {   // ✅ vertical line on hover
+          color: "#888",
+          width: 1,
+          dashStyle: "ShortDash"
+        }
       },
       yAxis: {
         title: {
@@ -87,7 +92,12 @@ function renderLinegraphChart(linegraphData) {
           style: { color: textColor }
         },
         labels: { style: { color: textColor } },
-        gridLineWidth: 0
+        gridLineWidth: 0,
+        crosshair: {   // ✅ horizontal line on hover
+          color: "#888",
+          width: 1,
+          dashStyle: "ShortDash"
+        }
       },
       tooltip: {
         shared: true,

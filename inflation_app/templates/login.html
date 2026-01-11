@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en">
 {% load static %}
+{% load i18n %}
 {% include 'components_base/_header.html' %}
 <style>
     .login-logo {
@@ -19,45 +20,49 @@
                        class="d-flex flex-column align-items-center mb-4 text-decoration-none">
                         <img
                                 src="{% static 'assets/images/logo.svg' %}"
-                                alt="Narxlar va Hududlar"
+                                alt="{% trans 'Narxlar va Hududlar' %}"
                                 class="login-logo mb-3"
                                 style="width: 80px; height: auto;"
                         >
-                        <span class="h5 text-dark mb-0">Narx tahlili</span>
+                        <span class="h5 mb-0">
+                            {% trans "Narx tahlili" %}
+                        </span>
                     </a>
 
                     <form method="post" action="{% url 'login' %}">
                         {% csrf_token %}
 
                         <div class="form-group mb-3">
-                            <label for="inputUsername" class="sr-only">Username</label>
+                            <label for="inputUsername" class="sr-only">{% trans "Foydalanuvchi" %}</label>
                             <input type="text" name="username" id="inputUsername"
                                    class="form-control form-control-lg rounded-3"
-                                   placeholder="Username" required autofocus>
+                                   placeholder="{% trans 'Username' %}" required autofocus>
                         </div>
 
                         <div class="form-group mb-3">
-                            <label for="inputPassword" class="sr-only">Password</label>
+                            <label for="inputPassword" class="sr-only">{% trans "Parol" %}</label>
                             <input type="password" name="password" id="inputPassword"
                                    class="form-control form-control-lg rounded-3"
-                                   placeholder="Password" required>
+                                   placeholder="{% trans 'Password' %}" required>
                         </div>
 
-                        <button class="btn btn-primary btn-lg btn-block w-100 rounded-3" type="submit">Kirish</button>
+                        <button class="btn btn-primary btn-lg btn-block w-100 rounded-3" type="submit">
+                            {% trans "Kirish" %}
+                        </button>
 
                         {% if error %}
                         <p class="text-danger mt-2">{{ error }}</p>
                         {% endif %}
                     </form>
 
-                    <p class="mt-4 mb-0 text-muted">developed by Abbosjon Vositov</p>
+                    <p class="mt-4 mb-0 text-muted">
+                        {% trans "developed by Abbosjon Vositov" %}
+                    </p>
                 </div>
             </div>
         </div>
     </div>
 </div>
 {% include 'components_base/_scripts.html' %}
-</body>
-</html>
 </body>
 </html>

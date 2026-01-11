@@ -8,15 +8,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-10 23:48+0500\n"
+"POT-Creation-Date: 2026-01-11 07:48+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"Language: cy\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=4; plural=(n==1) ? 0 : (n==2) ? 1 : (n != 8 && n != "
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "11) ? 2 : 3;\n"
 
 #: inflation_app/admin.py:232
@@ -33,89 +33,7 @@ msgid "%(count)d price records moved/merged. Product replaced successfully."
 msgstr ""
 
 #: inflation_app/admin.py:280
-#: inflation_app/templates/admin/inflation_app/product/replace_product.html:17
 msgid "Replace product"
-msgstr ""
-
-#: inflation_app/templates/admin/inflation_app/district/change_form.html:9
-msgid "Replace with another district"
-msgstr ""
-
-#: inflation_app/templates/admin/inflation_app/district/replace_district.html:7
-msgid "Replace district"
-msgstr ""
-
-#: inflation_app/templates/admin/inflation_app/district/replace_district.html:11
-#: inflation_app/templates/admin/inflation_app/product/replace_product.html:22
-#: inflation_app/templates/admin/inflation_app/region/replace_region.html:11
-msgid "will be permanently replaced."
-msgstr ""
-
-#: inflation_app/templates/admin/inflation_app/district/replace_district.html:13
-#: inflation_app/templates/admin/inflation_app/region/replace_region.html:13
-msgid "All related price observations will be reassigned."
-msgstr ""
-
-#: inflation_app/templates/admin/inflation_app/district/replace_district.html:14
-msgid "This district record will then be deleted."
-msgstr ""
-
-#: inflation_app/templates/admin/inflation_app/district/replace_district.html:16
-#: inflation_app/templates/admin/inflation_app/product/replace_product.html:29
-#: inflation_app/templates/admin/inflation_app/region/replace_region.html:16
-msgid "This action cannot be undone."
-msgstr ""
-
-#: inflation_app/templates/admin/inflation_app/district/replace_district.html:24
-#: inflation_app/templates/admin/inflation_app/region/replace_region.html:24
-msgid "Confirm replacement"
-msgstr ""
-
-#: inflation_app/templates/admin/inflation_app/district/replace_district.html:27
-#: inflation_app/templates/admin/inflation_app/product/replace_product.html:43
-#: inflation_app/templates/admin/inflation_app/region/replace_region.html:27
-msgid "Cancel"
-msgstr ""
-
-#: inflation_app/templates/admin/inflation_app/product/change_form.html:11
-msgid "Replace with another product"
-msgstr ""
-
-#: inflation_app/templates/admin/inflation_app/product/replace_product.html:6
-msgid "Home"
-msgstr ""
-
-#: inflation_app/templates/admin/inflation_app/product/replace_product.html:10
-msgid "Replace"
-msgstr ""
-
-#: inflation_app/templates/admin/inflation_app/product/replace_product.html:25
-msgid ""
-"All related price observations will be reassigned to the selected product."
-msgstr ""
-
-#: inflation_app/templates/admin/inflation_app/product/replace_product.html:26
-msgid "This product record will then be deleted."
-msgstr ""
-
-#: inflation_app/templates/admin/inflation_app/product/replace_product.html:36
-msgid "Select replacement product"
-msgstr ""
-
-#: inflation_app/templates/admin/inflation_app/product/replace_product.html:41
-msgid "✅ Confirm replacement"
-msgstr ""
-
-#: inflation_app/templates/admin/inflation_app/region/change_form.html:9
-msgid "Replace with another region"
-msgstr ""
-
-#: inflation_app/templates/admin/inflation_app/region/replace_region.html:7
-msgid "Replace region"
-msgstr ""
-
-#: inflation_app/templates/admin/inflation_app/region/replace_region.html:14
-msgid "This region record will then be deleted."
 msgstr ""
 
 #: inflation_app/templates/landing_page.html:503
@@ -194,6 +112,38 @@ msgstr ""
 msgid "Ma'lumot"
 msgstr "Маълумот"
 
+#: inflation_app/templates/login.html:23
+msgid "Narxlar va Hududlar"
+msgstr ""
+
+#: inflation_app/templates/login.html:28
+msgid "Narx tahlili"
+msgstr "Нарх таҳлили"
+
+#: inflation_app/templates/login.html:36
+msgid "Foydalanuvchi"
+msgstr "Фойдаланувчи"
+
+#: inflation_app/templates/login.html:39
+msgid "Username"
+msgstr "Фойдаланувчи"
+
+#: inflation_app/templates/login.html:43
+msgid "Parol"
+msgstr "Пароль"
+
+#: inflation_app/templates/login.html:46
+msgid "Password"
+msgstr "Пароль"
+
+#: inflation_app/templates/login.html:50
+msgid "Kirish"
+msgstr "Кириш"
+
+#: inflation_app/templates/login.html:59
+msgid "developed by Abbosjon Vositov"
+msgstr "Abbosjon Vositov"
+
 #: inflation_project/settings.py:156
 msgid "Oʻzbekcha"
 msgstr ""
@@ -202,18 +152,10 @@ msgstr ""
 msgid "Ўзбекча"
 msgstr ""
 
-#: inflation_project/settings.py:158
-msgid "Русский"
-msgstr ""
-
-#: inflation_project/settings.py:159
-msgid "English"
-msgstr ""
-
-#: templates/components_base/_topnavbar.html:142
+#: templates/components_base/_topnavbar.html:144
 msgid "Shaxsiy kabinet"
 msgstr "Шахсий кабинет"
 
-#: templates/components_base/_topnavbar.html:148
+#: templates/components_base/_topnavbar.html:150
 msgid "Chiqish"
 msgstr "Чиқиш"

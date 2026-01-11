@@ -1,19 +1,14 @@
 let mapChart; // global chart reference
 
-
 async function drilldownFromRegionChart(regionId, regionName, dashboardData) {
   try {
-    // ✅ Use already-fetched dashboardData
     const mapResult = dashboardData.charts.map_heatmap;
 
-    // Load the static topology file for the selected region
     const fileName = drilldownFileMap[regionId];
     const topology = await fetch(staticMapsBase + fileName + ".json").then(r => r.json());
 
-    // Convert topology to Highcharts geojson
     const districtShapes = Highcharts.geojson(topology);
 
-    // Match district shapes with backend data
     const districtData = districtShapes.map(shape => {
       const shapeNameRaw =
         shape.properties.NAME_2 ||
@@ -37,23 +32,29 @@ async function drilldownFromRegionChart(regionId, regionName, dashboardData) {
       };
     });
 
-    // ✅ Update the map chart with drilldown data
-    mapChart.series[0].setData(districtData);
+    // ✅ Lock chart while updating
+    const container = document.getElementById("map_chart");
+    container.style.pointerEvents = "none";
+    mapChart.showLoading("Loading...");
 
-    // ✅ Update subtitle using global interface text
-    const productName = currentInterfaceText?.product_name_latin || "Unknown product";
-    const productNameCyrillic = currentInterfaceText?.product_name_cyrillic || "";
-    const formattedDate = currentInterfaceText?.date_visual || "";
+    setTimeout(() => {
+      mapChart.series[0].setData(districtData);
 
-    mapChart.setSubtitle({
-      text: `${productName} — ${formattedDate} — ${regionName}`
-    });
+      const productName = currentInterfaceText?.product_name_latin || "Unknown product";
+      const formattedDate = currentInterfaceText?.date_visual || "";
 
+      mapChart.setSubtitle({
+        text: `${productName} — ${formattedDate} — ${regionName}`
+      });
+
+      // ✅ Unlock chart after update
+      mapChart.hideLoading();
+      container.style.pointerEvents = "auto";
+    }, 2000); // increased delay
   } catch (err) {
     console.error("Drilldown error:", err);
   }
 }
-
 
 async function drilldownHandler(e) {
   if (!e.seriesOptions) {
@@ -62,6 +63,7 @@ async function drilldownHandler(e) {
     const fileName = drilldownFileMap[e.point.region_id];
 
     chart.showLoading("Loading...");
+    chart.renderTo.style.pointerEvents = "none"; // lock interactions
 
     try {
       const mergedFilters = { ...currentFilters, region_id: e.point.region_id };
@@ -71,7 +73,6 @@ async function drilldownHandler(e) {
         fetchDashboardData(mergedFilters)
       ]);
 
-      // ✅ Refresh interface text from drilldown response
       if (dashboardData.global_metadata?.interface_text) {
         const it = dashboardData.global_metadata.interface_text;
         currentInterfaceText = {
@@ -107,30 +108,30 @@ async function drilldownHandler(e) {
         };
       });
 
-      // … price scaling logic unchanged …
+      setTimeout(() => {
+        chart.hideLoading();
+        chart.addSeriesAsDrilldown(e.point, {
+          name: e.point.name,
+          data: districtData,
+          dataLabels: { enabled: true, format: "{point.name}" }
+        });
 
-      chart.hideLoading();
+        const productName = currentInterfaceText?.product_name || "Unknown product";
+        const formattedDate = currentInterfaceText?.date_visual || "";
 
-      chart.addSeriesAsDrilldown(e.point, {
-        name: e.point.name,
-        data: districtData,
-        dataLabels: { enabled: true, format: "{point.name}" }
-      });
+        chart.setSubtitle({
+          text: `${productName} — ${e.point.name} — ${formattedDate}`
+        });
 
-      // ✅ Subtitle now uses refreshed interface text
-      const productName = currentInterfaceText?.product_name || "Unknown product";
-      const formattedDate = currentInterfaceText?.date_visual || "";
+        currentFilters = mergedFilters;
+        updateAllCharts(mergedFilters, { skipMap: true, dashboardData });
 
-      chart.setSubtitle({
-        text: `${productName} — ${e.point.name} — ${formattedDate}`
-      });
-
-      currentFilters = mergedFilters;
-      updateAllCharts(mergedFilters, { skipMap: true, dashboardData });
-
+        chart.renderTo.style.pointerEvents = "auto"; // unlock interactions
+      }, 2000); // increased delay
     } catch (error) {
       console.error(error);
       chart.hideLoading();
+      chart.renderTo.style.pointerEvents = "auto"; // unlock even on error
       alert(`Ошибка: ${error.message}`);
     }
   }
@@ -138,6 +139,10 @@ async function drilldownHandler(e) {
 
 function renderMapHeatmap(apiData, interfaceText = {}) {
   const containerId = 'map_chart';
+  const container = document.getElementById(containerId);
+
+  // ✅ Lock interactions while loading
+  container.style.pointerEvents = "none";
   showLoader(containerId);
 
   fetch('https://code.highcharts.com/mapdata/countries/uz/uz-all.topo.json')
@@ -151,13 +156,9 @@ function renderMapHeatmap(apiData, interfaceText = {}) {
         region_id: r.region_id
       }));
 
-      const values = data
-        .map(d => d.value)
-        .filter(v => v !== null && v !== undefined);
-
+      const values = data.map(d => d.value).filter(v => v !== null && v !== undefined);
       let minValue = Math.min(...values);
       let maxValue = Math.max(...values);
-
       if (minValue === maxValue) {
         minValue *= 0.99;
         maxValue *= 1.01;
@@ -167,12 +168,12 @@ function renderMapHeatmap(apiData, interfaceText = {}) {
       const formattedDate = interfaceText?.date_visual || '';
 
       if (typeof Highcharts !== "undefined") {
+        // ✅ Increased delay before rendering (e.g. 2000ms = 2 seconds)
         setTimeout(() => {
           const styles = getComputedStyle(document.body);
           const bgColor = styles.getPropertyValue("--bg-color").trim();
           const textColor = styles.getPropertyValue("--text-color").trim();
 
-          // ✅ Theme‑aware heatmap colors
           const modeSwitcher = document.getElementById("modeSwitcher");
           const mode = modeSwitcher ? modeSwitcher.dataset.mode : "light";
 
@@ -198,9 +199,7 @@ function renderMapHeatmap(apiData, interfaceText = {}) {
                 max: maxValue,
                 minColor: minColor,
                 maxColor: maxColor,
-                labels: {
-                  style: { color: textColor }
-                }
+                labels: { style: { color: textColor } }
               },
               legend: {
                 layout: 'horizontal',
@@ -214,10 +213,7 @@ function renderMapHeatmap(apiData, interfaceText = {}) {
                 },
                 itemStyle: { color: textColor }
               },
-              mapNavigation: {
-                enabled: true,
-                buttonOptions: { verticalAlign: 'bottom' }
-              },
+              mapNavigation: { enabled: true, buttonOptions: { verticalAlign: 'bottom' } },
               plotOptions: {
                 map: {
                   borderColor: "#444",
@@ -276,18 +272,19 @@ function renderMapHeatmap(apiData, interfaceText = {}) {
               max: maxValue,
               minColor: minColor,
               maxColor: maxColor,
-              labels: {
-                style: { color: textColor }
-              }
+              labels: { style: { color: textColor } }
             });
           }
 
+          // ✅ Unlock interactions after chart is ready
+          container.style.pointerEvents = "auto";
           hideLoader(containerId);
-        }, 300);
+        }, 2000); // delay increased to 2 seconds
       }
     })
     .catch(error => {
       console.error(error);
+      container.style.pointerEvents = "auto"; // unlock even on error
       hideLoader(containerId);
     });
 }

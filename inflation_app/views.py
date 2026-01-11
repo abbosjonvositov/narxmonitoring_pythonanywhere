@@ -17,7 +17,7 @@ from django.db.models import Avg, Max
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import PriceObservation
-from .handlers import CHART_HANDLERS
+from .handlers import *
 
 
 # Create your views here.
@@ -273,33 +273,33 @@ class LatestPriceByProductAPIView(LoginRequiredMixin, APIView):
         return Response(response)
 
 
+import time
+from django.core.cache import cache
+
 class DashboardAPIView(APIView, LoginRequiredMixin):
+    """
+    API view for the unified dashboard.
+    Uses the cached dashboard_handler to return all charts and metadata
+    in a single payload.
+    """
+
     def get(self, request):
-        qs = PriceObservation.objects.all()
-
         params = request.query_params.copy()
-        params["lang"] = request.LANGUAGE_CODE  # ✅ inject language
+        params["lang"] = request.LANGUAGE_CODE
 
-        result = {
-            "global_metadata": None,
-            "charts": {}
-        }
+        # Build cache key
+        cache_key = build_cache_key(params, chart_type="all")
 
-        for chart_key, handler in CHART_HANDLERS.items():
-            try:
-                chart_data = handler(qs, params)
-                if chart_key == "global_metadata":
-                    result["global_metadata"] = chart_data
-                else:
-                    result["charts"][chart_key] = chart_data
-            except Exception as e:
-                if chart_key == "global_metadata":
-                    result["global_metadata"] = {"error": f"Metadata unavailable: {str(e)}"}
-                else:
-                    result["charts"][chart_key] = {
-                        "error": f"Chart unavailable: {str(e)}",
-                        "chart_type": chart_key
-                    }
+        start = time.perf_counter()
+        result = cache.get(cache_key)
+        if result:
+            hit_or_miss = "CACHE HIT"
+        else:
+            hit_or_miss = "CACHE MISS"
+            result = dashboard_handler(params)  # this will compute + set cache
+
+        end = time.perf_counter()
+        print(f"[DashboardAPIView] {hit_or_miss} — execution time: {end - start:.4f} seconds")
 
         return Response(result)
 
