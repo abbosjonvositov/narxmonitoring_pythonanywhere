@@ -927,7 +927,8 @@ def linegraph_chart_handler(qs, params):
 def stacked_column_handler(qs, params):
     """
     Optimized handler for Highcharts stacked column chart showing regional price change contributions.
-    - Uses ALL unique dates but ONLY returns non-zero contribution periods.
+    - Uses up to the provided end_date (params["date"]) or latest available date.
+    - Only returns non-zero contribution periods.
     - Filters by product_id (default: "Olma").
     - Includes separate totals per period.
     - Language-aware region names (uz, cy, ru, en).
@@ -944,19 +945,12 @@ def stacked_column_handler(qs, params):
     }
     region_name_field = f"region_name_{LANG_FIELD_MAP.get(lang, 'latin')}"
 
-    def format_display_date(date_obj):
-        """Format date as '17 Dekabr, 2025'"""
-        if not date_obj:
-            return None
-        return f"{date_obj.day} {MONTHS_BY_LANG[lang][date_obj.month]}, {date_obj.year}"
-
     def format_date_ddmmyyyy(date_obj):
         if not date_obj:
             return None
         return date_obj.strftime("%d.%m.%Y")
 
     def format_4dp(value):
-        """Format to 4 decimal places"""
         return round(float(value), 4)
 
     # -------------------- PRODUCT HANDLING --------------------
@@ -972,7 +966,6 @@ def stacked_column_handler(qs, params):
                 "error": "Default product 'Olma' not found"
             }
 
-    # Filter only by product
     product_qs = qs.filter(product__product_id=product_id)
     if not product_qs.exists():
         return {
@@ -986,7 +979,7 @@ def stacked_column_handler(qs, params):
         region_id__in=product_qs.values_list("region__region_id", flat=True).distinct()
     ).order_by("region_name_latin")
 
-    # -------------------- ALL UNIQUE DATES --------------------
+    # -------------------- DATE WINDOW --------------------
     all_dates = list(product_qs.dates("date", "day").order_by("date"))
     if len(all_dates) < 2:
         return {
@@ -995,10 +988,30 @@ def stacked_column_handler(qs, params):
             "error": "Need at least 2 unique dates to calculate price changes"
         }
 
+    # Determine end_date: param or latest
+    provided_date = params.get("date")
+    if provided_date:
+        from datetime import datetime
+        try:
+            end_date = datetime.strptime(str(provided_date), "%Y-%m-%d").date()
+        except Exception:
+            end_date = all_dates[-1]
+    else:
+        end_date = all_dates[-1]
+
+    # Restrict dates up to end_date
+    all_dates = [d for d in all_dates if d <= end_date]
+
+    if len(all_dates) < 2:
+        return {
+            "chart_type": "stacked_column",
+            "data": [],
+            "error": "Not enough periods up to selected date"
+        }
+
     # -------------------- SERIES INITIALIZATION --------------------
     series = []
     for region in regions:
-        # Pick name in requested language, fallback to Latin
         name = getattr(region, region_name_field, None) or region.region_name_latin or f"Region {region.region_id}"
         series.append({"name": name, "data": []})
 
@@ -1010,19 +1023,16 @@ def stacked_column_handler(qs, params):
     for i, current_date in enumerate(all_dates[1:], 1):
         prev_date = all_dates[i - 1]
 
-        # Current period averages
         current_period = product_qs.filter(date=current_date).values("region__region_id").annotate(
             avg_price=Avg("price")
         )
         current_prices = {item["region__region_id"]: item["avg_price"] or 0 for item in current_period}
 
-        # Previous period averages
         prev_period = product_qs.filter(date=prev_date).values("region__region_id").annotate(
             avg_price=Avg("price")
         )
         prev_prices = {item["region__region_id"]: item["avg_price"] or 0 for item in prev_period}
 
-        # Calculate contributions
         period_contributions = []
         period_total = 0.0
 
@@ -1040,7 +1050,6 @@ def stacked_column_handler(qs, params):
             period_contributions.append(contribution)
             period_total += contribution
 
-        # Only include non-zero periods
         if period_total != 0:
             valid_period_contributions.append(period_contributions)
             date_labels.append(format_date_ddmmyyyy(current_date))
@@ -1066,7 +1075,8 @@ def stacked_column_handler(qs, params):
             "series": series,
             "period_totals": period_totals,
             "total_regions": len(regions),
-            "valid_periods": len(date_labels)
+            "valid_periods": len(date_labels),
+            "end_date": format_date_ddmmyyyy(end_date)
         }
     }
 
