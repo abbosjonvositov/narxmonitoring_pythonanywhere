@@ -26,32 +26,44 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import path, reverse
 from django.utils.translation import gettext_lazy as _
 
+from django.core.management.color import no_style
+from django.db import connection, transaction
+from django.contrib import messages
 
-# Flush action for SQLite
-def flush_and_reset_sqlite(modeladmin, request, queryset):
-    """Universal SQLite flush + ID reset action"""
+
+def flush_and_reset(modeladmin, request, queryset):
+    """
+    Universal flush + ID reset action for any supported DB backend.
+    Deletes all rows in the queryset's model table and resets the PK sequence.
+    """
     count = queryset.count()
     table_name = modeladmin.model._meta.db_table
+
+    # Delete all rows
     queryset.delete()
 
-    with connection.cursor() as cursor:
-        cursor.execute(f"DELETE FROM sqlite_sequence WHERE name='{table_name}'")
+    # Reset the sequence using Django's sequence_reset_sql (works across DBs)
+    sequence_sql = connection.ops.sequence_reset_sql(no_style(), [modeladmin.model])
+    if sequence_sql:
+        with connection.cursor() as cursor:
+            for sql in sequence_sql:
+                cursor.execute(sql)
 
     modeladmin.message_user(
         request,
-        f"✅ Flushed {count} {modeladmin.model.__name__}. Table empty. Next ID=1.",
+        f"✅ Flushed {count} {modeladmin.model.__name__}. Table empty. Next ID reset.",
         level=messages.SUCCESS
     )
 
 
-flush_and_reset_sqlite.short_description = "⚠️ FLUSH ALL & RESET ID TO 1 (irreversible!)"
+flush_and_reset.short_description = "⚠️ FLUSH ALL & RESET ID (irreversible!)"
 
 
 @admin.register(Region)
 class RegionAdmin(admin.ModelAdmin):
     list_display = ("region_id", "region_name_latin", "region_name_cyrillic", "weights")
     search_fields = ("region_name_latin", "region_name_cyrillic")
-    actions = [flush_and_reset_sqlite]  # ✅ Added flush action
+    actions = [flush_and_reset]  # ✅ Added flush action
 
     def has_delete_permission(self, request, obj=None):
         if obj is None:
@@ -120,7 +132,7 @@ class RegionAdmin(admin.ModelAdmin):
 class DistrictAdmin(admin.ModelAdmin):
     list_display = ("district_id", "district_name_latin", "district_name_cyrillic")
     search_fields = ("district_name_latin", "district_name_cyrillic")
-    actions = [flush_and_reset_sqlite]  # ✅ Added flush action
+    actions = [flush_and_reset]  # ✅ Added flush action
 
     def has_delete_permission(self, request, obj=None):
         return False
@@ -205,7 +217,7 @@ class DistrictAdmin(admin.ModelAdmin):
 class ProductAdmin(admin.ModelAdmin):
     list_display = ("product_id", "product_name_latin", "product_name_cyrillic")
     search_fields = ("product_name_latin", "product_name_cyrillic")
-    actions = [flush_and_reset_sqlite]  # ✅ Added flush action
+    actions = [flush_and_reset]  # ✅ Added flush action
 
     def has_delete_permission(self, request, obj=None):
         return False
