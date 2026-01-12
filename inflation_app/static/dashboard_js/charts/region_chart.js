@@ -1,15 +1,16 @@
 // Helper: format numbers with space as thousands separator
 function formatNumber(num) {
   return new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(num).replace(/,/g, " ");
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(Math.round(num)).replace(/,/g, " ");
 }
 
-// Helper: format percentage
+// Helper: format percentage without trailing zeros
 function formatPercent(num) {
-  return `${num.toFixed(2)}%`;
+  return `${parseFloat(num.toFixed(2))}%`;
 }
+
 
 // Track current sort state for region chart only
 let currentRegionSort = { column: "pct_change", direction: "desc" };
@@ -47,10 +48,11 @@ function renderRegionChart(regions) {
   container.innerHTML = "";
   showLoader(containerId);
 
-  const COL_FLEX = { text: "1", bar: "0 0 130px" };
+  // ✅ Balanced flex ratios: slightly narrower name, wider bar chart
+  const COL_FLEX = { name: "1.3", text: "1", bar: "0 0 120px" };
 
   setTimeout(() => {
-    // compute pct_change for each region
+    // compute pct_change for each region (frontend calculation)
     regions.forEach(r => {
       r.pct_change = r.prev !== 0
         ? ((r.actual - r.prev) / r.prev) * 100
@@ -90,8 +92,16 @@ function renderRegionChart(regions) {
 
     headers.forEach((h, idx) => {
       const cell = document.createElement("div");
-      cell.style.flex = idx === 4 ? COL_FLEX.bar : COL_FLEX.text;
-      cell.style.textAlign = "center";
+      if (idx === 0) {
+        cell.style.flex = COL_FLEX.name; // ✅ slightly narrower name column
+        cell.style.textAlign = "left";
+      } else if (idx === 4) {
+        cell.style.flex = COL_FLEX.bar; // ✅ wider bar chart
+        cell.style.textAlign = "center";
+      } else {
+        cell.style.flex = COL_FLEX.text;
+        cell.style.textAlign = "center";
+      }
       cell.textContent = h.label;
 
       if (h.key) {
@@ -136,11 +146,10 @@ function renderRegionChart(regions) {
       });
 
       const nameEl = document.createElement("div");
-      nameEl.style.flex = COL_FLEX.text;
-      nameEl.style.textAlign = "center";
-      nameEl.style.textOverflow = "ellipsis";
-      nameEl.style.overflow = "hidden";
-      nameEl.style.whiteSpace = "nowrap";
+      nameEl.style.flex = COL_FLEX.name;
+      nameEl.style.textAlign = "left";
+      nameEl.style.whiteSpace = "normal";
+      nameEl.style.wordBreak = "break-word";
       nameEl.title = region.name;
       nameEl.textContent = region.name;
       row.appendChild(nameEl);
@@ -148,26 +157,26 @@ function renderRegionChart(regions) {
       const actualEl = document.createElement("div");
       actualEl.style.flex = COL_FLEX.text;
       actualEl.style.textAlign = "center";
-      actualEl.textContent = formatNumber(region.actual);
+      actualEl.textContent = formatNumber(Math.round(region.actual)); // ✅ no decimals
       row.appendChild(actualEl);
 
       const prevEl = document.createElement("div");
       prevEl.style.flex = COL_FLEX.text;
       prevEl.style.textAlign = "center";
-      prevEl.textContent = formatNumber(region.prev);
+      prevEl.textContent = formatNumber(Math.round(region.prev)); // ✅ no decimals
       row.appendChild(prevEl);
 
       const pctEl = document.createElement("div");
       pctEl.style.flex = COL_FLEX.text;
       pctEl.style.textAlign = "center";
-      pctEl.textContent = formatPercent(pctChange);
+      pctEl.textContent = `${parseFloat(pctChange.toFixed(2))}%`; // ✅ clean percentage
       pctEl.classList.add(pctChange >= 0 ? "positive" : "negative");
       pctEl.title = pctChange >= 0 ? gettext("Ijobiy o'zgarish") : gettext("Salbiy o'zgarish");
       row.appendChild(pctEl);
 
       const barEl = document.createElement("div");
       barEl.className = "barchart";
-      barEl.style.flex = COL_FLEX.bar;
+      barEl.style.flex = COL_FLEX.bar; // ✅ wider bar chart
       barEl.style.height = "60px";
       barEl.style.overflow = "hidden";
       row.appendChild(barEl);
@@ -193,7 +202,9 @@ function renderRegionChart(regions) {
           color: nominalChange >= 0 ? "green" : "red"
         }],
         tooltip: {
-          pointFormat: `<b>{point.y}</b> ${gettext("Nominal o'zgarish")}`
+          pointFormatter: function () {
+            return `<b>${formatNumber(Math.round(this.y))}</b> ${gettext("Nominal o'zgarish")}`;
+          }
         },
         plotOptions: {
           series: {
@@ -202,7 +213,7 @@ function renderRegionChart(regions) {
             dataLabels: {
               enabled: true,
               formatter: function () {
-                return formatNumber(this.y);
+                return formatNumber(Math.round(this.y)); // ✅ no decimals
               },
               align: function () {
                 return this.y >= 0 ? "right" : "left";

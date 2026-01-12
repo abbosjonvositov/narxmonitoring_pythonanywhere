@@ -3,12 +3,12 @@
 /**
  * SparkLine constructor with sensible defaults
  */
-// ✅ Helper function for formatting numbers with space as thousands separator
+// ✅ Helper function for formatting numbers with space as thousands separator, no decimals
 function formatNumber(num) {
   return new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(num).replace(/,/g, " ");
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(Math.round(num)).replace(/,/g, " ");
 }
 
 Highcharts.SparkLine = function (a, b, c) {
@@ -20,7 +20,7 @@ Highcharts.SparkLine = function (a, b, c) {
       renderTo: (options.chart && options.chart.renderTo) || (hasRenderToArg && a),
       backgroundColor: null,
       borderWidth: 0,
-      type: "area",          // ✅ area chart
+      type: "area",
       margin: [2, 0, 2, 0],
       width: null,
       height: 30,
@@ -58,7 +58,7 @@ Highcharts.SparkLine = function (a, b, c) {
         shadow: false,
         states: { hover: { lineWidth: 1 } },
         marker: { radius: 1, states: { hover: { radius: 2 } } },
-        fillOpacity: 0.25   // ✅ area fill opacity
+        fillOpacity: 0.25
       }
     }
   };
@@ -131,8 +131,16 @@ function renderProductCharts(products) {
 
     headers.forEach((h, idx) => {
       const cell = document.createElement("div");
-      cell.style.flex = idx === 4 ? "2" : "1";
-      cell.style.textAlign = "center";
+      if (idx === 0) {
+        cell.style.flex = "2"; // wider product name
+        cell.style.textAlign = "left";
+      } else if (idx === 4) {
+        cell.style.flex = "1"; // narrower trend
+        cell.style.textAlign = "center";
+      } else {
+        cell.style.flex = "1";
+        cell.style.textAlign = "center";
+      }
       cell.textContent = h.label;
 
       if (h.key) {
@@ -174,11 +182,10 @@ function renderProductCharts(products) {
       });
 
       const nameEl = document.createElement("div");
-      nameEl.style.flex = "1";
-      nameEl.style.textAlign = "center";
-      nameEl.style.textOverflow = "ellipsis";
-      nameEl.style.overflow = "hidden";
-      nameEl.style.whiteSpace = "nowrap";
+      nameEl.style.flex = "2"; // wider name column
+      nameEl.style.textAlign = "left";
+      nameEl.style.whiteSpace = "normal";
+      nameEl.style.wordBreak = "break-word";
       nameEl.title = prod.name;
       nameEl.textContent = prod.name;
       row.appendChild(nameEl);
@@ -186,13 +193,13 @@ function renderProductCharts(products) {
       const actualEl = document.createElement("div");
       actualEl.style.flex = "1";
       actualEl.style.textAlign = "center";
-      actualEl.textContent = formatNumber(prod.actual);
+      actualEl.textContent = formatNumber(Math.round(prod.actual));
       row.appendChild(actualEl);
 
       const prevEl = document.createElement("div");
       prevEl.style.flex = "1";
       prevEl.style.textAlign = "center";
-      prevEl.textContent = formatNumber(prod.prev);
+      prevEl.textContent = formatNumber(Math.round(prod.prev));
       row.appendChild(prevEl);
 
       const changeEl = document.createElement("div");
@@ -205,7 +212,7 @@ function renderProductCharts(products) {
 
       const sparkEl = document.createElement("div");
       sparkEl.className = "sparkline";
-      sparkEl.style.flex = "2";
+      sparkEl.style.flex = "1"; // narrower trend column
       sparkEl.style.height = "30px";
       row.appendChild(sparkEl);
 
@@ -231,7 +238,7 @@ function renderProductCharts(products) {
         tooltip: {
           headerFormat: `<span style="font-size: 10px">${prod.name}</span><br/>`,
           pointFormatter: function () {
-            return `<b>${formatNumber(this.y)}</b> ${gettext("UZS")}<br/>${Highcharts.dateFormat('%e %b, %Y', this.x)}`;
+            return `<b>${formatNumber(Math.round(this.y))}</b> ${gettext("UZS")}<br/>${Highcharts.dateFormat('%e %b, %Y', this.x)}`;
           },
           style: { zIndex: 9999 }
         }
@@ -241,6 +248,7 @@ function renderProductCharts(products) {
     hideLoader(containerId);
   }, 1000);
 }
+
 
 // Attach fullscreen toggle for product chart
 document.addEventListener("DOMContentLoaded", () => {

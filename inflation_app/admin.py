@@ -36,9 +36,8 @@ from django.db import connection, transaction
 
 def flush_and_reset(modeladmin, request, queryset):
     """
-    Universal flush + ID reset action for any supported DB backend.
-    Uses TRUNCATE/RESTART IDENTITY where available to ensure PK starts at 1.
-    Falls back to backend-specific sequence reset logic.
+    Universal flush + ID reset action.
+    Uses DELETE + sequence reset for safety with foreign keys.
     """
     model = modeladmin.model
     table_name = model._meta.db_table
@@ -46,38 +45,23 @@ def flush_and_reset(modeladmin, request, queryset):
 
     try:
         with transaction.atomic():
+            # Delete all rows
+            queryset.delete()
+
             vendor = connection.vendor
-
-            if vendor == "postgresql":
-                # TRUNCATE resets sequences when RESTART IDENTITY is used
-                with connection.cursor() as cursor:
-                    cursor.execute(f'TRUNCATE TABLE "{table_name}" RESTART IDENTITY CASCADE;')
-
-            elif vendor == "mysql":
-                # TRUNCATE resets AUTO_INCREMENT to 1
-                with connection.cursor() as cursor:
-                    cursor.execute(f"TRUNCATE TABLE `{table_name}`;")
-
-            elif vendor == "sqlite":
-                # TRUNCATE not supported; do DELETE + reset sqlite_sequence
-                with connection.cursor() as cursor:
-                    cursor.execute(f'DELETE FROM "{table_name}";')
+            with connection.cursor() as cursor:
+                if vendor == "postgresql":
+                    cursor.execute(f'ALTER SEQUENCE "{table_name}_id_seq" RESTART WITH 1;')
+                elif vendor == "mysql":
+                    cursor.execute(f"ALTER TABLE `{table_name}` AUTO_INCREMENT = 1;")
+                elif vendor == "sqlite":
                     cursor.execute("DELETE FROM sqlite_sequence WHERE name=%s;", [table_name])
-
-            else:
-                # Fallback: try TRUNCATE; if not supported, do DELETE + sequence_reset_sql
-                try:
-                    with connection.cursor() as cursor:
-                        cursor.execute(f"TRUNCATE TABLE {table_name};")
-                except Exception:
-                    # Fallback path
-                    queryset.delete()
+                else:
+                    # Fallback: try Django's sequence reset
                     from django.core.management.color import no_style
                     sequence_sql = connection.ops.sequence_reset_sql(no_style(), [model])
-                    if sequence_sql:
-                        with connection.cursor() as cursor:
-                            for sql in sequence_sql:
-                                cursor.execute(sql)
+                    for sql in sequence_sql:
+                        cursor.execute(sql)
 
         modeladmin.message_user(
             request,

@@ -47,9 +47,11 @@ function renderDistrictChart(districts) {
   container.innerHTML = "";
   showLoader(containerId);
 
-  const COL_FLEX = { text: "1", bar: "0 0 130px" };
+  // ✅ Balanced flex ratios: slightly narrower name, wider bar chart
+  const COL_FLEX = { name: "1.3", text: "1", bar: "0 0 120px" };
 
   setTimeout(() => {
+    // use change_pct from endpoint if available
     districts.forEach(d => { d.pct_change = d.change_pct || 0; });
 
     const allNominalChanges = districts.map(d => d.nominal_change);
@@ -84,8 +86,16 @@ function renderDistrictChart(districts) {
 
     headers.forEach((h, idx) => {
       const cell = document.createElement("div");
-      cell.style.flex = idx === 4 ? COL_FLEX.bar : COL_FLEX.text;
-      cell.style.textAlign = "center";
+      if (idx === 0) {
+        cell.style.flex = COL_FLEX.name; // ✅ slightly narrower name column
+        cell.style.textAlign = "left";
+      } else if (idx === 4) {
+        cell.style.flex = COL_FLEX.bar; // ✅ wider bar chart
+        cell.style.textAlign = "center";
+      } else {
+        cell.style.flex = COL_FLEX.text;
+        cell.style.textAlign = "center";
+      }
       cell.textContent = h.label;
 
       if (h.key) {
@@ -139,11 +149,10 @@ function renderDistrictChart(districts) {
       });
 
       const nameEl = document.createElement("div");
-      nameEl.style.flex = COL_FLEX.text;
-      nameEl.style.textAlign = "center";
-      nameEl.style.textOverflow = "ellipsis";
-      nameEl.style.overflow = "hidden";
-      nameEl.style.whiteSpace = "nowrap";
+      nameEl.style.flex = COL_FLEX.name;
+      nameEl.style.textAlign = "left";
+      nameEl.style.whiteSpace = "normal";
+      nameEl.style.wordBreak = "break-word";
       nameEl.title = district.district_name;
       nameEl.textContent = district.district_name;
       row.appendChild(nameEl);
@@ -151,26 +160,26 @@ function renderDistrictChart(districts) {
       const actualEl = document.createElement("div");
       actualEl.style.flex = COL_FLEX.text;
       actualEl.style.textAlign = "center";
-      actualEl.textContent = formatNumber(district.actual);
+      actualEl.textContent = formatNumber(Math.round(district.actual)); // ✅ no decimals
       row.appendChild(actualEl);
 
       const prevEl = document.createElement("div");
       prevEl.style.flex = COL_FLEX.text;
       prevEl.style.textAlign = "center";
-      prevEl.textContent = formatNumber(district.prev);
+      prevEl.textContent = formatNumber(Math.round(district.prev)); // ✅ no decimals
       row.appendChild(prevEl);
 
       const pctEl = document.createElement("div");
       pctEl.style.flex = COL_FLEX.text;
       pctEl.style.textAlign = "center";
-      pctEl.textContent = formatPercent(pctChange);
+      pctEl.textContent = `${parseFloat(pctChange.toFixed(2))}%`; // ✅ clean percentage
       pctEl.classList.add(pctChange >= 0 ? "positive" : "negative");
       pctEl.title = pctChange >= 0 ? gettext("Ijobiy o'zgarish") : gettext("Salbiy o'zgarish");
       row.appendChild(pctEl);
 
       const barEl = document.createElement("div");
       barEl.className = "barchart";
-      barEl.style.flex = COL_FLEX.bar;
+      barEl.style.flex = COL_FLEX.bar; // ✅ wider bar chart
       barEl.style.height = "60px";
       barEl.style.overflow = "hidden";
       row.appendChild(barEl);
@@ -182,7 +191,7 @@ function renderDistrictChart(districts) {
         title: { text: "" },
         credits: { enabled: false },
         exporting: { enabled: false },
-        xAxis: { categories: [district.name], labels: { enabled: false } },
+        xAxis: { categories: [district.district_name], labels: { enabled: false } },
         yAxis: {
           title: { text: null },
           labels: { enabled: false },
@@ -196,7 +205,9 @@ function renderDistrictChart(districts) {
           color: nominalChange >= 0 ? "green" : "red"
         }],
         tooltip: {
-          pointFormat: `<b>{point.y}</b> ${gettext("Nominal o'zgarish")}`
+          pointFormatter: function () {
+            return `<b>${formatNumber(Math.round(this.y))}</b> ${gettext("Nominal o'zgarish")}`;
+          }
         },
         plotOptions: {
           series: {
@@ -205,7 +216,7 @@ function renderDistrictChart(districts) {
             dataLabels: {
               enabled: true,
               formatter: function () {
-                return formatNumber(this.y);
+                return formatNumber(Math.round(this.y)); // ✅ no decimals
               },
               align: function () {
                 return this.y >= 0 ? "right" : "left";

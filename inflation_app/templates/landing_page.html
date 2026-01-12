@@ -975,13 +975,12 @@
               <div class="ticker-item" data-product-id="${item.product_id}">
                 <div class="product-name">${item.product_name}</div>
                 <div class="product-price">${formattedPrice}</div>
-                <div class="product-change ${up ? 'positive' : down ? 'negative' : 'neutral'}">
+                <div class="product-change ${up ? 'negative' : down ? 'positive' : 'neutral'}">
                   ${arrow} ${item.nominal_change.toFixed(2)}<br/>
                   (${item.percentage_change.toFixed(2)}%)
                 </div>
               </div>
             `;
-
         }
 
         function animate() {

@@ -6,7 +6,8 @@ from django.db.models.functions import TruncWeek
 from .models import Product, Region, District, PriceObservation
 from .utils import format_price, format_price_change
 
-CACHE_TIMEOUT = 300  # 5 minutes
+# CACHE_TIMEOUT = 300  # 5 minutes
+CACHE_TIMEOUT = 60 * 60 * 24 * 365  # 1 year
 
 MONTHS_UZ = {
     1: "Yanvar", 2: "Fevral", 3: "Mart", 4: "Aprel",
@@ -78,14 +79,18 @@ MONTHS_BY_LANG = {
 
 
 def build_cache_key(params, chart_type="all"):
-    """
-    Generates a consistent Redis cache key for dashboard charts.
-    """
     product_id = params.get("product_id") or "all"
     region_id = params.get("region_id") or "all"
     district_id = params.get("district_id") or "all"
     date = params.get("date") or "latest"
-    return f"dashboard:{chart_type}:{product_id}:{region_id}:{district_id}:{date}"
+    lang = params.get("lang") or params.get("language") or "uz"
+    data_type = params.get("type") or "price"
+
+    return (
+        f"dashboard:{chart_type}:"
+        f"{lang}:{data_type}:"
+        f"{product_id}:{region_id}:{district_id}:{date}"
+    )
 
 
 def dashboard_handler(params):
@@ -398,9 +403,11 @@ def map_heatmap_handler(qs, params):
 def product_chart_handler(qs, params):
     """
     Optimized handler for product performance chart.
-    - Shows ALL products with % price change.
+    - Shows ALL products with % and nominal price change.
     - Returns product names in requested language: uz, cy, ru, en.
     - Includes last N historical points (default: 5).
+    - Prices are returned without decimals.
+    - Percentage & nominal change have only 1 decimal.
     """
 
     try:
@@ -456,13 +463,18 @@ def product_chart_handler(qs, params):
             return f"{date_obj.day} {MONTHS_BY_LANG[lang][date_obj.month]}, {date_obj.year}"
 
         # Aggregate current period data
-        current_grouped = current_qs.select_related("product").values(
-            "product_id",
-            "product__product_name_latin",
-            "product__product_name_cyrillic",
-            "product__product_name_russian",
-            "product__product_name_english"
-        ).annotate(avg_price=Avg("price"))
+        current_grouped = (
+            current_qs
+            .select_related("product")
+            .values(
+                "product_id",
+                "product__product_name_latin",
+                "product__product_name_cyrillic",
+                "product__product_name_russian",
+                "product__product_name_english"
+            )
+            .annotate(avg_price=Avg("price"))
+        )
 
         # Aggregate previous period data
         prev_grouped = prev_qs.values("product_id").annotate(avg_price=Avg("price"))
@@ -472,18 +484,22 @@ def product_chart_handler(qs, params):
 
         for g in current_grouped:
             product_id = g["product_id"]
-            # Select name in requested language
-            product_name = g.get(f"product__product_name_{LANG_FIELD_MAP.get(lang, 'latin')}")
-            if not product_name:
-                # fallback to latin
-                product_name = g.get("product__product_name_latin") or f"Product {product_id}"
 
-            actual_price = round(g["avg_price"] or 0, 2)
-            prev_price = round(prev_dict.get(product_id, actual_price) or actual_price, 2)
+            product_name = g.get(
+                f"product__product_name_{LANG_FIELD_MAP.get(lang, 'latin')}"
+            ) or g.get("product__product_name_latin") or f"Product {product_id}"
 
-            price_change_pct = (
-                round(((actual_price - prev_price) / prev_price) * 100, 2)
-                if prev_price > 0 else 0.00
+            # Prices WITHOUT decimals
+            actual_price = int(round(g["avg_price"] or 0))
+            prev_price = int(round(prev_dict.get(product_id, actual_price) or actual_price))
+
+            # Nominal change (1 decimal)
+            nominal_change = round(actual_price - prev_price, 1)
+
+            # Percentage change (1 decimal)
+            change_pct = (
+                round(((actual_price - prev_price) / prev_price) * 100, 1)
+                if prev_price > 0 else 0.0
             )
 
             # Historical series (last 5 points)
@@ -503,12 +519,15 @@ def product_chart_handler(qs, params):
 
             history = []
             for h in hist_qs:
-                hist_name = h.get(f"product__product_name_{LANG_FIELD_MAP.get(lang, 'latin')}") or h.get(
-                    "product__product_name_latin")
+                hist_name = (
+                    h.get(f"product__product_name_{LANG_FIELD_MAP.get(lang, 'latin')}")
+                    or h.get("product__product_name_latin")
+                )
+
                 history.append({
                     "date": str(h["date"]),
                     "date_visual": format_display_date(h["date"]),
-                    "price": round(h["avg_price"] or 0, 2),
+                    "price": int(round(h["avg_price"] or 0)),  # no decimals
                     "name": hist_name
                 })
 
@@ -517,7 +536,8 @@ def product_chart_handler(qs, params):
                 "name": product_name,
                 "actual": actual_price,
                 "prev": prev_price,
-                "change_pct": price_change_pct,
+                "nominal_change": nominal_change,
+                "change_pct": change_pct,
                 "history": list(reversed(history)),  # chronological
             })
 
@@ -532,6 +552,29 @@ def product_chart_handler(qs, params):
             "error": f"Product chart unavailable: {str(e)}",
         }
 
+def normalize_region_name(name, lang):
+    """
+    Normalizes region names for display purposes.
+    Applied only for specific known cases.
+    """
+    if not name:
+        return name
+
+    name = name.strip()
+
+    if lang == "cy":
+        if name == "Тошкент шаҳри":
+            return "Тошкент ш."
+        if name == "Тошкент вилояти":
+            return "Тошкент"
+
+    if lang == "uz":
+        if name == "Toshkent shahri":
+            return "Toshkent sh."
+        if name == "Toshkent viloyati":
+            return "Toshkent"
+
+    return name
 
 def region_chart_handler(qs, params):
     """
@@ -540,6 +583,9 @@ def region_chart_handler(qs, params):
     - Defaults to product "Olma" if not specified.
     - Uses shared queryset (already filtered in dashboard_handler).
     - Returns region names in requested language: uz, cy, ru, en.
+    - Prices have NO decimals.
+    - Nominal & percentage changes have 1 decimal.
+    - Applies region name normalization for Toshkent (uz, cy).
     """
 
     try:
@@ -553,7 +599,6 @@ def region_chart_handler(qs, params):
             "ru": "russian",
             "en": "english",
         }
-        name_field = f"region_name_{LANG_FIELD_MAP.get(lang, 'latin')}"
 
         # -------------------- Default product --------------------
         if not product_id:
@@ -582,13 +627,18 @@ def region_chart_handler(qs, params):
         prev_qs = qs.filter(date=prev_date) if prev_date else current_qs
 
         # Aggregate current period data
-        current_grouped = current_qs.select_related("region").values(
-            "region_id",
-            "region__region_name_latin",
-            "region__region_name_cyrillic",
-            "region__region_name_russian",
-            "region__region_name_english",
-        ).annotate(avg_price=Avg("price"))
+        current_grouped = (
+            current_qs
+            .select_related("region")
+            .values(
+                "region_id",
+                "region__region_name_latin",
+                "region__region_name_cyrillic",
+                "region__region_name_russian",
+                "region__region_name_english",
+            )
+            .annotate(avg_price=Avg("price"))
+        )
 
         # Aggregate previous period data
         prev_grouped = prev_qs.values("region_id").annotate(avg_price=Avg("price"))
@@ -608,18 +658,30 @@ def region_chart_handler(qs, params):
 
         # -------------------- Build response --------------------
         regions = []
+
         for g in current_grouped:
             region_id = g["region_id"]
-            region_name = g.get(f"region__region_name_{LANG_FIELD_MAP.get(lang, 'latin')}") \
-                          or g.get("region__region_name_latin") \
-                          or f"Region {region_id}"
 
-            actual_price = round(g["avg_price"] or 0, 2)
-            prev_price = round(prev_dict.get(region_id, actual_price) or actual_price, 2)
-            nominal_change = round(actual_price - prev_price, 2)
-            pct_change = (
-                round(((actual_price - prev_price) / prev_price) * 100, 2)
-                if prev_price > 0 else 0.00
+            region_name = (
+                g.get(f"region__region_name_{LANG_FIELD_MAP.get(lang, 'latin')}")
+                or g.get("region__region_name_latin")
+                or f"Region {region_id}"
+            )
+
+            # Normalize region name (Toshkent only, uz & cy)
+            region_name = normalize_region_name(region_name, lang)
+
+            # Prices WITHOUT decimals
+            actual_price = int(round(g["avg_price"] or 0))
+            prev_price = int(round(prev_dict.get(region_id, actual_price) or actual_price))
+
+            # Nominal change (1 decimal)
+            nominal_change = round(actual_price - prev_price, 1)
+
+            # Percentage change (1 decimal)
+            change_pct = (
+                round(((actual_price - prev_price) / prev_price) * 100, 1)
+                if prev_price > 0 else 0.0
             )
 
             regions.append({
@@ -628,9 +690,9 @@ def region_chart_handler(qs, params):
                 "actual": actual_price,
                 "prev": prev_price,
                 "nominal_change": nominal_change,
-                "change_pct": pct_change,
+                "change_pct": change_pct,
                 "date": str(target_date),
-                "date_visual": format_display_date(target_date)
+                "date_visual": format_display_date(target_date),
             })
 
         return {
@@ -645,6 +707,26 @@ def region_chart_handler(qs, params):
             "data": []
         }
 
+def normalize_district_name(name, lang):
+    """
+    Normalizes district names for display.
+    Applies language-specific suffix shortening.
+    """
+    if not name:
+        return name
+
+    name = name.strip()
+
+    if lang == "cy":
+        name = name.replace(" тумани", " т.")
+        name = name.replace(" шаҳри", " ш.")
+
+    elif lang == "uz":
+        name = name.replace(" tumani", " t.")
+        name = name.replace(" shahri", " sh.")
+
+    return name
+
 
 def district_chart_handler(qs, params):
     """
@@ -654,6 +736,9 @@ def district_chart_handler(qs, params):
     - Includes region_id for each district.
     - Uses shared queryset (already filtered in dashboard_handler).
     - Returns district and region names in requested language: uz, cy, ru, en.
+    - Prices & nominal change have NO decimals.
+    - Percentage change has 1 decimal.
+    - District names are normalized (tumani/shahri → t./sh.).
     """
 
     try:
@@ -703,18 +788,23 @@ def district_chart_handler(qs, params):
         prev_qs = qs.filter(date=prev_date) if prev_date else current_qs
 
         # Aggregate current period data
-        current_grouped = current_qs.select_related("district", "region").values(
-            "district_id",
-            "region_id",
-            "district__district_name_latin",
-            "district__district_name_cyrillic",
-            "district__district_name_russian",
-            "district__district_name_english",
-            "region__region_name_latin",
-            "region__region_name_cyrillic",
-            "region__region_name_russian",
-            "region__region_name_english"
-        ).annotate(avg_price=Avg("price"))
+        current_grouped = (
+            current_qs
+            .select_related("district", "region")
+            .values(
+                "district_id",
+                "region_id",
+                "district__district_name_latin",
+                "district__district_name_cyrillic",
+                "district__district_name_russian",
+                "district__district_name_english",
+                "region__region_name_latin",
+                "region__region_name_cyrillic",
+                "region__region_name_russian",
+                "region__region_name_english"
+            )
+            .annotate(avg_price=Avg("price"))
+        )
 
         # Aggregate previous period data
         prev_grouped = prev_qs.values("district_id").annotate(avg_price=Avg("price"))
@@ -734,20 +824,37 @@ def district_chart_handler(qs, params):
 
         # -------------------- Build response --------------------
         districts = []
+
         for g in current_grouped:
             district_id = g["district_id"]
             region_id = g["region_id"]
 
-            district_name = g.get(district_name_field) or g.get(
-                "district__district_name_latin") or f"District {district_id}"
-            region_name = g.get(region_name_field) or g.get("region__region_name_latin") or f"Region {region_id}"
+            district_name = (
+                g.get(district_name_field)
+                or g.get("district__district_name_latin")
+                or f"District {district_id}"
+            )
 
-            actual_price = round(g["avg_price"] or 0, 2)
-            prev_price = round(prev_dict.get(district_id, actual_price) or actual_price, 2)
-            nominal_change = round(actual_price - prev_price, 2)
-            pct_change = (
-                round(((actual_price - prev_price) / prev_price) * 100, 2)
-                if prev_price > 0 else 0.00
+            # Normalize district name (tumani/shahri)
+            district_name = normalize_district_name(district_name, lang)
+
+            region_name = (
+                g.get(region_name_field)
+                or g.get("region__region_name_latin")
+                or f"Region {region_id}"
+            )
+
+            # Prices WITHOUT decimals
+            actual_price = int(round(g["avg_price"] or 0))
+            prev_price = int(round(prev_dict.get(district_id, actual_price) or actual_price))
+
+            # Nominal change WITHOUT decimals
+            nominal_change = actual_price - prev_price
+
+            # Percentage change (1 decimal)
+            change_pct = (
+                round(((actual_price - prev_price) / prev_price) * 100, 1)
+                if prev_price > 0 else 0.0
             )
 
             districts.append({
@@ -758,7 +865,7 @@ def district_chart_handler(qs, params):
                 "actual": actual_price,
                 "prev": prev_price,
                 "nominal_change": nominal_change,
-                "change_pct": pct_change,
+                "change_pct": change_pct,
                 "date": str(target_date),
                 "date_visual": format_display_date(target_date)
             })

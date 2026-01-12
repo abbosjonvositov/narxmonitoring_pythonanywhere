@@ -1,8 +1,9 @@
 import pandas as pd
+from django.conf import settings
 from django.db import transaction
-from .models import *
-from django.db import transaction
-from django.db.models import Q
+from django.core.cache import cache
+
+from .models import Region, District, Product, PriceObservation
 
 
 @transaction.atomic
@@ -98,8 +99,8 @@ def load_price_data_from_excel_file(file_path):
 
     - Auto-creates Region, District, Product if missing
     - Fully atomic
-    - Debugger on failure
     - Optimized for large files (~30K rows)
+    - Cache invalidation happens AFTER successful commit
     """
 
     def norm(val):
@@ -143,7 +144,7 @@ def load_price_data_from_excel_file(file_path):
             d_key = norm(row["district_name"])
             p_key = norm(row["product"])
 
-            if r_key not in regions_map:
+            if r_key not in regions_map and r_key not in new_regions:
                 new_regions[r_key] = Region(
                     region_name_latin=row["region_name"].strip(),
                     region_name_cyrillic="",
@@ -151,13 +152,13 @@ def load_price_data_from_excel_file(file_path):
                     weights=None,
                 )
 
-            if d_key not in districts_map:
+            if d_key not in districts_map and d_key not in new_districts:
                 new_districts[d_key] = District(
                     district_name_latin=row["district_name"].strip(),
                     district_name_cyrillic="",
                 )
 
-            if p_key not in products_map:
+            if p_key not in products_map and p_key not in new_products:
                 new_products[p_key] = Product(
                     product_name_latin=row["product"].strip(),
                     product_name_cyrillic="",
@@ -223,51 +224,56 @@ def load_price_data_from_excel_file(file_path):
                 update_fields=["price", "region_id"],
                 batch_size=1000,
             )
-            return len(price_data)
 
-        # ---------- UNIVERSAL FALLBACK ----------
-        incoming_map = {
-            (d["district_id"], d["product_id"], d["date"]): d
-            for d in price_data
-        }
+        else:
+            # ---------- UNIVERSAL FALLBACK ----------
+            incoming_map = {
+                (d["district_id"], d["product_id"], d["date"]): d
+                for d in price_data
+            }
 
-        existing = PriceObservation.objects.filter(
-            district_id__in=[k[0] for k in incoming_map],
-            product_id__in=[k[1] for k in incoming_map],
-            date__in=[k[2] for k in incoming_map],
-        )
-
-        existing_map = {
-            (o.district_id, o.product_id, o.date): o
-            for o in existing
-        }
-
-        to_create = []
-        to_update = []
-
-        for key, data in incoming_map.items():
-            if key in existing_map:
-                obj = existing_map[key]
-                obj.price = data["price"]
-                obj.region_id = data["region_id"]
-                to_update.append(obj)
-            else:
-                to_create.append(PriceObservation(**data))
-
-        if to_create:
-            PriceObservation.objects.bulk_create(to_create, batch_size=1000)
-
-        if to_update:
-            PriceObservation.objects.bulk_update(
-                to_update,
-                ["price", "region"],
-                batch_size=1000,
+            existing = PriceObservation.objects.filter(
+                district_id__in=[k[0] for k in incoming_map],
+                product_id__in=[k[1] for k in incoming_map],
+                date__in=[k[2] for k in incoming_map],
             )
+
+            existing_map = {
+                (o.district_id, o.product_id, o.date): o
+                for o in existing
+            }
+
+            to_create = []
+            to_update = []
+
+            for key, data in incoming_map.items():
+                if key in existing_map:
+                    obj = existing_map[key]
+                    obj.price = data["price"]
+                    obj.region_id = data["region_id"]
+                    to_update.append(obj)
+                else:
+                    to_create.append(PriceObservation(**data))
+
+            if to_create:
+                PriceObservation.objects.bulk_create(to_create, batch_size=1000)
+
+            if to_update:
+                PriceObservation.objects.bulk_update(
+                    to_update,
+                    ["price", "region"],
+                    batch_size=1000,
+                )
+
+        # ---------- CACHE INVALIDATION (AFTER COMMIT) ----------
+        transaction.on_commit(
+            lambda: cache.delete_pattern("dashboard:*")
+        )
 
         return len(price_data)
 
     except Exception:
         if settings.DEBUG:
-            import pdb;
+            import pdb
             pdb.set_trace()
         raise
