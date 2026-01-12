@@ -189,6 +189,10 @@ class LatestPriceByProductAPIView(LoginRequiredMixin, APIView):
     nominal change vs previous period,
     percentage change,
     with product name localized by LANGUAGE_CODE.
+
+    Formatting rules:
+    - Prices & nominal change: NO decimals
+    - Percentage change: 1 decimal
     """
 
     LANG_FIELD_MAP = {
@@ -264,10 +268,14 @@ class LatestPriceByProductAPIView(LoginRequiredMixin, APIView):
             response.append({
                 "product_id": product_id,
                 "product_name": row.get(f"product__{name_field}"),
-                "latest_price": round(latest_price, 2),
-                "previous_price": round(prev_price, 2) if prev_price is not None else None,
-                "nominal_change": round(nominal_change, 2),
-                "percentage_change": round(percentage_change, 2),
+
+                # Prices WITHOUT decimals
+                "latest_price": int(round(latest_price)),
+                "previous_price": int(round(prev_price)) if prev_price is not None else None,
+
+                # Changes formatting
+                "nominal_change": int(round(nominal_change)),
+                "percentage_change": round(percentage_change, 1),
             })
 
         return Response(response)
@@ -350,6 +358,24 @@ def get_change_by_offset(product, region=None, offset=1):
 
     return calculate_change(latest_price, past_price)
 
+def normalize_change(change):
+    """
+    Normalizes change dict:
+    - pct -> 1 decimal
+    - nominal -> no decimals
+    """
+    if not change:
+        return change
+
+    normalized = change.copy()
+
+    if "pct" in normalized and normalized["pct"] is not None:
+        normalized["pct"] = round(normalized["pct"], 1)
+
+    if "nominal" in normalized and normalized["nominal"] is not None:
+        normalized["nominal"] = int(round(normalized["nominal"]))
+
+    return normalized
 
 class ProductPerformanceView(APIView):
     def get(self, request):
@@ -392,26 +418,59 @@ class ProductPerformanceView(APIView):
 
             latest_price = latest_obs["avg_price"]
             prev_price = prev_obs["avg_price"] if prev_obs else None
-            change_info = calculate_change(latest_price, prev_price)
+
+            change_info = normalize_change(
+                calculate_change(latest_price, prev_price)
+            )
 
             product_data = {
                 "product_id": product.product_id,
                 "name": product_name,
-                "price": round(latest_price, 2),
-                "prevPrice": round(prev_price, 2) if prev_price else None,
+                "price": int(round(latest_price)),
+                "prevPrice": int(round(prev_price)) if prev_price is not None else None,
                 "change": change_info,
                 "performance": [
-                    {"period": "1W", "change": get_change_by_offset(product, offset=1)},
-                    {"period": "1M", "change": get_change_by_offset(product, offset=4)},
-                    {"period": "3M", "change": get_change_by_offset(product, offset=12)},
-                    {"period": "6M", "change": get_change_by_offset(product, offset=24)},
-                    {"period": "YTD", "change": get_change_by_offset(product, offset=len(qs) - 1)},
-                    {"period": "1Y", "change": get_change_by_offset(product, offset=52)},
+                    {
+                        "period": "1W",
+                        "change": normalize_change(
+                            get_change_by_offset(product, offset=1)
+                        )
+                    },
+                    {
+                        "period": "1M",
+                        "change": normalize_change(
+                            get_change_by_offset(product, offset=4)
+                        )
+                    },
+                    {
+                        "period": "3M",
+                        "change": normalize_change(
+                            get_change_by_offset(product, offset=12)
+                        )
+                    },
+                    {
+                        "period": "6M",
+                        "change": normalize_change(
+                            get_change_by_offset(product, offset=24)
+                        )
+                    },
+                    {
+                        "period": "YTD",
+                        "change": normalize_change(
+                            get_change_by_offset(product, offset=len(qs) - 1)
+                        )
+                    },
+                    {
+                        "period": "1Y",
+                        "change": normalize_change(
+                            get_change_by_offset(product, offset=52)
+                        )
+                    },
                 ],
                 "regions": []
             }
 
-            # Region-level performance
+            # --- Region-level performance ---
             for region in Region.objects.all():
                 region_name_field = f"region_name_{LANG_FIELD_MAP.get(lang, 'latin')}"
                 region_name = getattr(region, region_name_field, region.region_name_latin)
@@ -431,31 +490,68 @@ class ProductPerformanceView(APIView):
 
                 latest_region_price = latest_region_obs["avg_price"]
                 prev_region_price = prev_region_obs["avg_price"] if prev_region_obs else None
-                region_change_info = calculate_change(latest_region_price, prev_region_price)
+
+                region_change_info = normalize_change(
+                    calculate_change(latest_region_price, prev_region_price)
+                )
 
                 region_data = {
                     "name": region_name,
-                    "price": round(latest_region_price, 2),
-                    "prevPrice": round(prev_region_price, 2) if prev_region_price else None,
+                    "price": int(round(latest_region_price)),
+                    "prevPrice": int(round(prev_region_price)) if prev_region_price is not None else None,
                     "change": region_change_info,
                     "performance": [
-                        {"period": "1W", "change": get_change_by_offset(product, region=region, offset=1)},
-                        {"period": "1M", "change": get_change_by_offset(product, region=region, offset=4)},
-                        {"period": "3M", "change": get_change_by_offset(product, region=region, offset=12)},
-                        {"period": "6M", "change": get_change_by_offset(product, region=region, offset=24)},
-                        {"period": "YTD",
-                         "change": get_change_by_offset(product, region=region, offset=len(qs_region) - 1)},
-                        {"period": "1Y", "change": get_change_by_offset(product, region=region, offset=52)},
+                        {
+                            "period": "1W",
+                            "change": normalize_change(
+                                get_change_by_offset(product, region=region, offset=1)
+                            )
+                        },
+                        {
+                            "period": "1M",
+                            "change": normalize_change(
+                                get_change_by_offset(product, region=region, offset=4)
+                            )
+                        },
+                        {
+                            "period": "3M",
+                            "change": normalize_change(
+                                get_change_by_offset(product, region=region, offset=12)
+                            )
+                        },
+                        {
+                            "period": "6M",
+                            "change": normalize_change(
+                                get_change_by_offset(product, region=region, offset=24)
+                            )
+                        },
+                        {
+                            "period": "YTD",
+                            "change": normalize_change(
+                                get_change_by_offset(product, region=region, offset=len(qs_region) - 1)
+                            )
+                        },
+                        {
+                            "period": "1Y",
+                            "change": normalize_change(
+                                get_change_by_offset(product, region=region, offset=52)
+                            )
+                        },
                     ]
                 }
+
                 product_data["regions"].append(region_data)
 
             products_data.append(product_data)
 
         # --- Step 4: update cache (language-aware) ---
-        cache.set(cache_key, {
-            "latest_date": latest_date,
-            "data": products_data
-        }, timeout=None)
+        cache.set(
+            cache_key,
+            {
+                "latest_date": latest_date,
+                "data": products_data
+            },
+            timeout=None
+        )
 
         return Response({"products": products_data})

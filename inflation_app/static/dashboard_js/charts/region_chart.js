@@ -48,18 +48,15 @@ function renderRegionChart(regions) {
   container.innerHTML = "";
   showLoader(containerId);
 
-  // ✅ Balanced flex ratios: slightly narrower name, wider bar chart
   const COL_FLEX = { name: "1.3", text: "1", bar: "0 0 120px" };
 
   setTimeout(() => {
-    // compute pct_change for each region (frontend calculation)
     regions.forEach(r => {
       r.pct_change = r.prev !== 0
         ? ((r.actual - r.prev) / r.prev) * 100
         : 0;
     });
 
-    // compute global min/max for nominal_change
     const allNominalChanges = regions.map(r => r.nominal_change);
     const globalMin = Math.min(...allNominalChanges);
     const globalMax = Math.max(...allNominalChanges);
@@ -93,10 +90,10 @@ function renderRegionChart(regions) {
     headers.forEach((h, idx) => {
       const cell = document.createElement("div");
       if (idx === 0) {
-        cell.style.flex = COL_FLEX.name; // ✅ slightly narrower name column
+        cell.style.flex = COL_FLEX.name;
         cell.style.textAlign = "left";
       } else if (idx === 4) {
-        cell.style.flex = COL_FLEX.bar; // ✅ wider bar chart
+        cell.style.flex = COL_FLEX.bar;
         cell.style.textAlign = "center";
       } else {
         cell.style.flex = COL_FLEX.text;
@@ -157,26 +154,27 @@ function renderRegionChart(regions) {
       const actualEl = document.createElement("div");
       actualEl.style.flex = COL_FLEX.text;
       actualEl.style.textAlign = "center";
-      actualEl.textContent = formatNumber(Math.round(region.actual)); // ✅ no decimals
+      actualEl.textContent = formatNumber(Math.round(region.actual));
       row.appendChild(actualEl);
 
       const prevEl = document.createElement("div");
       prevEl.style.flex = COL_FLEX.text;
       prevEl.style.textAlign = "center";
-      prevEl.textContent = formatNumber(Math.round(region.prev)); // ✅ no decimals
+      prevEl.textContent = formatNumber(Math.round(region.prev));
       row.appendChild(prevEl);
 
       const pctEl = document.createElement("div");
       pctEl.style.flex = COL_FLEX.text;
       pctEl.style.textAlign = "center";
-      pctEl.textContent = `${parseFloat(pctChange.toFixed(2))}%`; // ✅ clean percentage
-      pctEl.classList.add(pctChange >= 0 ? "positive" : "negative");
+      pctEl.textContent = `${parseFloat(pctChange.toFixed(2))}%`;
+      // ✅ invert colors: positive → red, negative → green
+      pctEl.classList.add(pctChange >= 0 ? "negative" : "positive");
       pctEl.title = pctChange >= 0 ? gettext("Ijobiy o'zgarish") : gettext("Salbiy o'zgarish");
       row.appendChild(pctEl);
 
       const barEl = document.createElement("div");
       barEl.className = "barchart";
-      barEl.style.flex = COL_FLEX.bar; // ✅ wider bar chart
+      barEl.style.flex = COL_FLEX.bar;
       barEl.style.height = "60px";
       barEl.style.overflow = "hidden";
       row.appendChild(barEl);
@@ -199,7 +197,8 @@ function renderRegionChart(regions) {
         legend: { enabled: false },
         series: [{
           data: [nominalChange],
-          color: nominalChange >= 0 ? "green" : "red"
+          // ✅ invert colors: positive → red, negative → green
+          color: nominalChange >= 0 ? "red" : "green"
         }],
         tooltip: {
           pointFormatter: function () {
@@ -213,7 +212,7 @@ function renderRegionChart(regions) {
             dataLabels: {
               enabled: true,
               formatter: function () {
-                return formatNumber(Math.round(this.y)); // ✅ no decimals
+                return formatNumber(Math.round(this.y));
               },
               align: function () {
                 return this.y >= 0 ? "right" : "left";

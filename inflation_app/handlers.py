@@ -206,6 +206,42 @@ def invalidate_dashboard_cache(product_id=None, region_id=None, district_id=None
 
 # -------------------- Existing Handlers (unchanged logic, optimized qs usage) --------------------
 
+def normalize_district_name(name, lang):
+    """
+    Normalizes district names for display.
+    Applies language-specific suffix shortening.
+    """
+    if not name:
+        return name
+
+    name = name.strip()
+
+    if lang == "cy":
+        name = name.replace(" тумани", " т.")
+        name = name.replace(" шаҳри", " ш.")
+    elif lang == "uz":
+        name = name.replace(" tumani", " t.")
+        name = name.replace(" shahri", " sh.")
+
+    return name
+
+
+def normalize_region_name(name, lang):
+    """
+    Optional: normalize region names if needed (similar rules can be applied).
+    """
+    if not name:
+        return name
+    name = name.strip()
+    if lang == "cy":
+        name = name.replace(" вилояти", "")
+        name = name.replace(" шаҳри", " ш.")
+    elif lang == "uz":
+        name = name.replace(" viloyati", "")
+        name = name.replace(" shahri", " sh.")
+    return name
+
+
 def map_heatmap_handler(qs, params):
     """
     Optimized handler for map heatmap chart.
@@ -520,8 +556,8 @@ def product_chart_handler(qs, params):
             history = []
             for h in hist_qs:
                 hist_name = (
-                    h.get(f"product__product_name_{LANG_FIELD_MAP.get(lang, 'latin')}")
-                    or h.get("product__product_name_latin")
+                        h.get(f"product__product_name_{LANG_FIELD_MAP.get(lang, 'latin')}")
+                        or h.get("product__product_name_latin")
                 )
 
                 history.append({
@@ -552,29 +588,6 @@ def product_chart_handler(qs, params):
             "error": f"Product chart unavailable: {str(e)}",
         }
 
-def normalize_region_name(name, lang):
-    """
-    Normalizes region names for display purposes.
-    Applied only for specific known cases.
-    """
-    if not name:
-        return name
-
-    name = name.strip()
-
-    if lang == "cy":
-        if name == "Тошкент шаҳри":
-            return "Тошкент ш."
-        if name == "Тошкент вилояти":
-            return "Тошкент"
-
-    if lang == "uz":
-        if name == "Toshkent shahri":
-            return "Toshkent sh."
-        if name == "Toshkent viloyati":
-            return "Toshkent"
-
-    return name
 
 def region_chart_handler(qs, params):
     """
@@ -663,9 +676,9 @@ def region_chart_handler(qs, params):
             region_id = g["region_id"]
 
             region_name = (
-                g.get(f"region__region_name_{LANG_FIELD_MAP.get(lang, 'latin')}")
-                or g.get("region__region_name_latin")
-                or f"Region {region_id}"
+                    g.get(f"region__region_name_{LANG_FIELD_MAP.get(lang, 'latin')}")
+                    or g.get("region__region_name_latin")
+                    or f"Region {region_id}"
             )
 
             # Normalize region name (Toshkent only, uz & cy)
@@ -706,26 +719,6 @@ def region_chart_handler(qs, params):
             "error": f"Region chart unavailable: {str(e)}",
             "data": []
         }
-
-def normalize_district_name(name, lang):
-    """
-    Normalizes district names for display.
-    Applies language-specific suffix shortening.
-    """
-    if not name:
-        return name
-
-    name = name.strip()
-
-    if lang == "cy":
-        name = name.replace(" тумани", " т.")
-        name = name.replace(" шаҳри", " ш.")
-
-    elif lang == "uz":
-        name = name.replace(" tumani", " t.")
-        name = name.replace(" shahri", " sh.")
-
-    return name
 
 
 def district_chart_handler(qs, params):
@@ -830,18 +823,18 @@ def district_chart_handler(qs, params):
             region_id = g["region_id"]
 
             district_name = (
-                g.get(district_name_field)
-                or g.get("district__district_name_latin")
-                or f"District {district_id}"
+                    g.get(district_name_field)
+                    or g.get("district__district_name_latin")
+                    or f"District {district_id}"
             )
 
             # Normalize district name (tumani/shahri)
             district_name = normalize_district_name(district_name, lang)
 
             region_name = (
-                g.get(region_name_field)
-                or g.get("region__region_name_latin")
-                or f"Region {region_id}"
+                    g.get(region_name_field)
+                    or g.get("region__region_name_latin")
+                    or f"Region {region_id}"
             )
 
             # Prices WITHOUT decimals
@@ -886,12 +879,12 @@ def district_chart_handler(qs, params):
 def linegraph_chart_handler(qs, params):
     """
     Optimized handler for Highcharts line graph showing WEEKLY price time series.
-    - Always returns a full 52-week cycle ending at the provided date (if given) or latest available week.
-    - Uses actual distinct DB dates (no artificial week boundary computation).
-    - Language-aware region/district names (uz, cy, ru, en).
+    - Returns a full 52-week cycle ending at provided date (if given) or latest week.
+    - Prices are integers (no decimals).
+    - Language-aware region/district names.
     """
 
-    WEEKS_IN_YEAR = 104
+    WEEKS_IN_YEAR = 52
     DEFAULT_PRODUCT_NAME = "Olma"
 
     # -------------------- Language awareness --------------------
@@ -911,7 +904,7 @@ def linegraph_chart_handler(qs, params):
         return date_obj.strftime("%d.%m.%Y")
 
     def format_price(price):
-        return round(float(price), 2) if price is not None else None
+        return int(round(price)) if price is not None else None
 
     # -------------------- PRODUCT --------------------
     product_id = params.get("product_id")
@@ -928,22 +921,18 @@ def linegraph_chart_handler(qs, params):
 
     # -------------------- FILTERS --------------------
     qs = qs.filter(product__product_id=product_id)
-
     if params.get("region_id"):
         qs = qs.filter(region__region_id=params["region_id"])
-
     if params.get("district_id"):
         qs = qs.filter(district__district_id=params["district_id"])
 
     # -------------------- DATE WINDOW --------------------
-    # If user provided a date, use it; otherwise use latest available
     provided_date = params.get("date")
+    from datetime import datetime
     if provided_date:
         try:
-            from datetime import datetime
             end_date = datetime.strptime(str(provided_date), "%Y-%m-%d").date()
         except Exception:
-            # fallback if parsing fails
             end_date = qs.aggregate(latest=Max("date"))["latest"]
     else:
         end_date = qs.aggregate(latest=Max("date"))["latest"]
@@ -951,22 +940,12 @@ def linegraph_chart_handler(qs, params):
     if not end_date:
         return {"chart_type": "linegraph", "data": []}
 
-    # Get distinct ordered dates
     dates = qs.values_list("date", flat=True).distinct().order_by("date")
+    dates_list = list(dates)
+    end_index = dates_list.index(end_date) if end_date in dates_list else len(dates_list) - 1
 
-    # Find the index of end_date in the list of dates
-    if end_date in dates:
-        end_index = list(dates).index(end_date)
-    else:
-        # fallback: use last index
-        end_index = dates.count() - 1
-
-    # Calculate start_date 52 weeks before end_date (or earliest available)
-    if dates.count() >= WEEKS_IN_YEAR and end_index >= WEEKS_IN_YEAR - 1:
-        start_date = list(dates)[end_index - (WEEKS_IN_YEAR - 1)]
-    else:
-        start_date = dates.first()
-
+    start_index = max(0, end_index - (WEEKS_IN_YEAR - 1))
+    start_date = dates_list[start_index]
     qs = qs.filter(date__gte=start_date, date__lte=end_date)
 
     # -------------------- SERIES --------------------
@@ -987,10 +966,12 @@ def linegraph_chart_handler(qs, params):
             ]
         }
 
+    # -------------------- Build series --------------------
     if params.get("district_id"):
         district_obj = qs.select_related("district").first()
         district_name = getattr(district_obj.district, district_name_field, None) \
-                        if district_obj else f"District {params['district_id']}"
+            if district_obj else f"District {params['district_id']}"
+        district_name = normalize_district_name(district_name, lang)
         series.append(generate_weekly_series(qs, district_name))
 
     elif params.get("region_id"):
@@ -999,6 +980,7 @@ def linegraph_chart_handler(qs, params):
         )
         for district in districts:
             name = getattr(district, district_name_field, None) or district.district_name_latin
+            name = normalize_district_name(name, lang)
             series.append(
                 generate_weekly_series(
                     qs.filter(district__district_id=district.district_id),
@@ -1012,6 +994,7 @@ def linegraph_chart_handler(qs, params):
         )
         for region in regions:
             name = getattr(region, region_name_field, None) or region.region_name_latin
+            name = normalize_region_name(name, lang)
             series.append(
                 generate_weekly_series(
                     qs.filter(region__region_id=region.region_id),
@@ -1040,6 +1023,9 @@ def stacked_column_handler(qs, params):
     - Includes separate totals per period.
     - Language-aware region names (uz, cy, ru, en).
     - Uses shared queryset (already filtered in dashboard_handler).
+    - Formatting rules:
+        * Contributions & period totals: 1 decimal
+        * Prices are already aggregated internally
     """
 
     # -------------------- Language awareness --------------------
@@ -1057,8 +1043,9 @@ def stacked_column_handler(qs, params):
             return None
         return date_obj.strftime("%d.%m.%Y")
 
-    def format_4dp(value):
-        return round(float(value), 4)
+    def format_1dp(value):
+        """Round value to 1 decimal"""
+        return round(float(value), 1)
 
     # -------------------- PRODUCT HANDLING --------------------
     product_id = params.get("product_id")
@@ -1150,7 +1137,8 @@ def stacked_column_handler(qs, params):
             if prev_price > 0:
                 pct_change = (current_price / prev_price * 100 - 100)
                 weight = float(getattr(region, "weights", 0))
-                contribution = format_4dp(pct_change * weight)
+                contribution = pct_change * weight
+                contribution = format_1dp(contribution)
             else:
                 contribution = 0.0
 
@@ -1160,7 +1148,7 @@ def stacked_column_handler(qs, params):
         if period_total != 0:
             valid_period_contributions.append(period_contributions)
             date_labels.append(format_date_ddmmyyyy(current_date))
-            period_totals.append(format_4dp(period_total))
+            period_totals.append(format_1dp(period_total))
 
     # -------------------- POPULATE SERIES --------------------
     for j, region_series in enumerate(series):
