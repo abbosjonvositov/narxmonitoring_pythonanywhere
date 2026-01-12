@@ -10,9 +10,11 @@ function getHeatmapColor(value, min, max) {
   const ratio = (value - min) / (max - min); // normalize between 0–1
 
   if (value > 0) {
-    return `rgba(76, 175, 80, ${0.2 + ratio * 0.6})`; // green gradient
+    // increase → red gradient
+    return `rgba(244, 67, 54, ${0.2 + ratio * 0.6})`;
   } else {
-    return `rgba(244, 67, 54, ${0.2 + (1 - ratio) * 0.6})`; // red gradient
+    // decrease → green gradient
+    return `rgba(76, 175, 80, ${0.2 + (1 - ratio) * 0.6})`;
   }
 }
 
@@ -62,8 +64,8 @@ function showExtraInfo(product) {
         <tr>${performance.map(p => `<th>${gettext(p.period)}</th>`).join("")}</tr>
         <tr>${performance.map(p => {
           let cls = "right-bar-performance-neutral";
-          if (p.change.pct > 0) cls = "right-bar-performance-positive";
-          else if (p.change.pct < 0) cls = "right-bar-performance-negative";
+          if (p.change.pct > 0) cls = "right-bar-performance-negative"; // increase → red
+          else if (p.change.pct < 0) cls = "right-bar-performance-positive"; // decrease → green
           return `<td class="${cls}">${formatWithSpace(p.change.pct)}%</td>`;
         }).join("")}</tr>
       </table>
@@ -102,12 +104,12 @@ function showExtraInfo(product) {
         <tr>
           <td>${gettext("Eng yuqori oʻsish (%)")}</td>
           <td>${highestIncrease.name}</td>
-          <td class="insight-positive">${formatWithSpace(highestIncrease.change.pct)}%</td>
+          <td class="insight-negative">${formatWithSpace(highestIncrease.change.pct)}%</td>
         </tr>
         <tr>
           <td>${gettext("Eng yuqori pasayish (%)")}</td>
           <td>${highestDecrease.name}</td>
-          <td class="insight-negative">${formatWithSpace(highestDecrease.change.pct)}%</td>
+          <td class="insight-positive">${formatWithSpace(highestDecrease.change.pct)}%</td>
         </tr>
         <tr>
           <td>${gettext("Eng qimmat")}</td>
@@ -129,8 +131,8 @@ function showExtraInfo(product) {
 
     function getRegionHeatmapColor(value, min, max) {
       if (value === 0) return "rgba(153,153,153,0.2)";
-      if (value > 0) return `rgba(76, 175, 80, ${0.2 + value / max * 0.6})`;
-      else return `rgba(244, 67, 54, ${0.2 + value / min * 0.6})`;
+      if (value > 0) return `rgba(244, 67, 54, ${0.2 + value / max * 0.6})`; // increase → red
+      else return `rgba(76, 175, 80, ${0.2 + value / min * 0.6})`; // decrease → green
     }
 
     let rowsHTML = product.regions.map(region => `
@@ -176,8 +178,9 @@ function renderTablePicker() {
     <div class="table-picker">
       <div class="table-picker-list">
         ${products.map((p, i) => {
+          // keep arrow direction same, only invert colors
           const arrow = p.change.nominal >= 0 ? "▲" : "▼";
-          const arrowClass = p.change.nominal >= 0 ? "arrow-up" : "arrow-down";
+          const arrowClass = p.change.nominal >= 0 ? "arrow-down" : "arrow-up";
           return `
             <div class="table-picker-row ${i === activeIndex ? "active" : ""}" data-index="${i}">
               <span>${p.name}</span>
