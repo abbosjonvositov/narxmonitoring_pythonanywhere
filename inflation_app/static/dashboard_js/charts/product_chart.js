@@ -11,6 +11,8 @@ function formatNumber(num) {
   }).format(Math.round(num)).replace(/,/g, " ");
 }
 
+
+
 Highcharts.SparkLine = function (a, b, c) {
   const hasRenderToArg = typeof a === "string" || a.nodeName;
   let options = arguments[hasRenderToArg ? 1 : 0];
@@ -99,6 +101,12 @@ function sortProducts(products, column, direction) {
 /**
  * Render product sparklines inside #product_chart
  */
+// Custom function to insert spaces as thousand separators
+function addSpaceSeparator(num) {
+  let str = String(num);
+  return str.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+}
+
 function renderProductCharts(products) {
   const containerId = "product_chart";
   const container = document.getElementById(containerId);
@@ -193,13 +201,13 @@ function renderProductCharts(products) {
       const actualEl = document.createElement("div");
       actualEl.style.flex = "1";
       actualEl.style.textAlign = "center";
-      actualEl.textContent = formatNumber(Math.round(prod.actual));
+      actualEl.textContent = addSpaceSeparator(prod.actual); // custom separator
       row.appendChild(actualEl);
 
       const prevEl = document.createElement("div");
       prevEl.style.flex = "1";
       prevEl.style.textAlign = "center";
-      prevEl.textContent = formatNumber(Math.round(prod.prev));
+      prevEl.textContent = addSpaceSeparator(prod.prev); // custom separator
       row.appendChild(prevEl);
 
       const changeEl = document.createElement("div");
@@ -238,7 +246,7 @@ function renderProductCharts(products) {
         tooltip: {
           headerFormat: `<span style="font-size: 10px">${prod.name}</span><br/>`,
           pointFormatter: function () {
-            return `<b>${formatNumber(Math.round(this.y))}</b> ${gettext("UZS")}<br/>${Highcharts.dateFormat('%e %b, %Y', this.x)}`;
+            return `<b>${addSpaceSeparator(this.y)}</b> ${gettext("UZS")}<br/>${Highcharts.dateFormat('%e %b, %Y', this.x)}`;
           },
           style: { zIndex: 9999 }
         }

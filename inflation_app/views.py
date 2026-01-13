@@ -5,7 +5,6 @@ from django.contrib.auth import authenticate, login
 from django.views import View
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from django.conf import settings
 from .models import UploadPermission
 from .services import *
 from django.contrib import messages
@@ -13,11 +12,15 @@ from django.shortcuts import redirect
 import os
 import glob
 from django.contrib.auth.mixins import LoginRequiredMixin
+from .handlers import *
 from django.db.models import Avg, Max
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import PriceObservation
-from .handlers import *
+import time
+from django.core.cache import cache
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 
 # Create your views here.
@@ -183,7 +186,12 @@ class LogoutView(View, LoginRequiredMixin):
         return redirect('login')
 
 
-class LatestPriceByProductAPIView(LoginRequiredMixin, APIView):
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from django.db.models import Avg, Max
+
+class LatestPriceByProductAPIView(APIView):
     """
     Returns latest average price by product,
     nominal change vs previous period,
@@ -194,6 +202,7 @@ class LatestPriceByProductAPIView(LoginRequiredMixin, APIView):
     - Prices & nominal change: NO decimals
     - Percentage change: 1 decimal
     """
+    permission_classes = [IsAuthenticated]
 
     LANG_FIELD_MAP = {
         "uz": "product_name_latin",
@@ -227,7 +236,7 @@ class LatestPriceByProductAPIView(LoginRequiredMixin, APIView):
         )
 
     def get(self, request):
-        lang = request.LANGUAGE_CODE or "uz"
+        lang = getattr(request, "LANGUAGE_CODE", "uz")
         name_field = self.LANG_FIELD_MAP.get(lang, "product_name_latin")
 
         latest_date = self.get_latest_date()
@@ -281,15 +290,13 @@ class LatestPriceByProductAPIView(LoginRequiredMixin, APIView):
         return Response(response)
 
 
-import time
-from django.core.cache import cache
-
-class DashboardAPIView(APIView, LoginRequiredMixin):
+class DashboardAPIView(APIView):
     """
     API view for the unified dashboard.
     Uses the cached dashboard_handler to return all charts and metadata
     in a single payload.
     """
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         params = request.query_params.copy()
@@ -310,12 +317,6 @@ class DashboardAPIView(APIView, LoginRequiredMixin):
         print(f"[DashboardAPIView] {hit_or_miss} — execution time: {end - start:.4f} seconds")
 
         return Response(result)
-
-
-from django.db.models import Avg, Max
-from django.core.cache import cache
-from rest_framework.views import APIView
-from rest_framework.response import Response
 
 
 def calculate_change(latest, prev):
@@ -358,6 +359,7 @@ def get_change_by_offset(product, region=None, offset=1):
 
     return calculate_change(latest_price, past_price)
 
+
 def normalize_change(change):
     """
     Normalizes change dict:
@@ -377,7 +379,11 @@ def normalize_change(change):
 
     return normalized
 
+
+
 class ProductPerformanceView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         # --- Step 0: determine language ---
         lang = getattr(request, "LANGUAGE_CODE", "uz")

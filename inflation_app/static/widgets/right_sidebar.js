@@ -66,7 +66,7 @@ function showExtraInfo(product) {
           let cls = "right-bar-performance-neutral";
           if (p.change.pct > 0) cls = "right-bar-performance-negative"; // increase → red
           else if (p.change.pct < 0) cls = "right-bar-performance-positive"; // decrease → green
-          return `<td class="${cls}">${formatWithSpace(p.change.pct)}%</td>`;
+          return `<td class="${cls}">${parseFloat(p.change.pct)}%</td>`;
         }).join("")}</tr>
       </table>
     `;
@@ -104,12 +104,12 @@ function showExtraInfo(product) {
         <tr>
           <td>${gettext("Eng yuqori oʻsish (%)")}</td>
           <td>${highestIncrease.name}</td>
-          <td class="insight-negative">${formatWithSpace(highestIncrease.change.pct)}%</td>
+          <td class="insight-negative">${parseFloat(highestIncrease.change.pct)}%</td>
         </tr>
         <tr>
           <td>${gettext("Eng yuqori pasayish (%)")}</td>
           <td>${highestDecrease.name}</td>
-          <td class="insight-positive">${formatWithSpace(highestDecrease.change.pct)}%</td>
+          <td class="insight-positive">${parseFloat(highestDecrease.change.pct)}%</td>
         </tr>
         <tr>
           <td>${gettext("Eng qimmat")}</td>
@@ -137,10 +137,10 @@ function showExtraInfo(product) {
 
     let rowsHTML = product.regions.map(region => `
       <tr>
-        <td title="${region.name}">${region.name}</td>
+        <td style="width:110px;" title="${region.name}">${region.name}</td>
         ${region.performance.map(p => {
           const bgColor = getRegionHeatmapColor(p.change.pct, minChange, maxChange);
-          return `<td style="background-color:${bgColor}">${formatWithSpace(p.change.pct)}%</td>`;
+          return `<td style="background-color:${bgColor}">${parseFloat(p.change.pct)}%</td>`;
         }).join("")}
       </tr>
     `).join("");
@@ -149,7 +149,7 @@ function showExtraInfo(product) {
       <p>${product.name}</p>
       <table class="right-bar-region-table">
         <tr>
-          <th>${gettext("Hududlar")}</th>
+          <th style="width:110px;">${gettext("Hududlar")}</th>
           <th>${gettext("1W")}</th>
           <th>${gettext("1M")}</th>
           <th>${gettext("3M")}</th>

@@ -962,21 +962,29 @@
         // Track animation frame ID
         let animationId = null;
 
+        // Custom function to add space separators
+        function addSpaceSeparator(num) {
+            let str = String(num);
+            return str.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+        }
+
         function renderItem(item) {
             const up = item.nominal_change > 0;
             const down = item.nominal_change < 0;
             const arrow = up ? '▲' : down ? '▼' : '→';
 
-            // Format price with space as thousands separator
-            const formattedPrice = item.latest_price
-                .toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            // Format price with space as thousands separator (no decimals)
+            const formattedPrice = addSpaceSeparator(item.latest_price);
+
+            // Format nominal change with space separator and 2 decimals
+            const formattedNominalChange = addSpaceSeparator(item.nominal_change.toFixed(2));
 
             return `
               <div class="ticker-item" data-product-id="${item.product_id}">
                 <div class="product-name">${item.product_name}</div>
                 <div class="product-price">${formattedPrice}</div>
                 <div class="product-change ${up ? 'negative' : down ? 'positive' : 'neutral'}">
-                  ${arrow} ${item.nominal_change.toFixed(2)}<br/>
+                  ${arrow} ${formattedNominalChange}<br/>
                   (${item.percentage_change.toFixed(2)}%)
                 </div>
               </div>

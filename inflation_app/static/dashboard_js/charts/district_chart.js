@@ -39,6 +39,12 @@ function sortDistricts(districts, column, direction) {
 /**
  * Render district bar charts inside #district_chart
  */
+// Custom function to insert spaces as thousand separators
+function addSpaceSeparator(num) {
+  let str = String(num);
+  return str.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+}
+
 function renderDistrictChart(districts) {
   const containerId = "district_chart";
   const container = document.getElementById(containerId);
@@ -158,13 +164,13 @@ function renderDistrictChart(districts) {
       const actualEl = document.createElement("div");
       actualEl.style.flex = COL_FLEX.text;
       actualEl.style.textAlign = "center";
-      actualEl.textContent = formatNumber(Math.round(district.actual));
+      actualEl.textContent = addSpaceSeparator(district.actual);
       row.appendChild(actualEl);
 
       const prevEl = document.createElement("div");
       prevEl.style.flex = COL_FLEX.text;
       prevEl.style.textAlign = "center";
-      prevEl.textContent = formatNumber(Math.round(district.prev));
+      prevEl.textContent = addSpaceSeparator(district.prev);
       row.appendChild(prevEl);
 
       const pctEl = document.createElement("div");
@@ -206,7 +212,7 @@ function renderDistrictChart(districts) {
         }],
         tooltip: {
           pointFormatter: function () {
-            return `<b>${formatNumber(Math.round(this.y))}</b> ${gettext("Nominal o'zgarish")}`;
+            return `<b>${addSpaceSeparator(this.y)}</b> ${gettext("Nominal o'zgarish")}`;
           }
         },
         plotOptions: {
@@ -216,7 +222,7 @@ function renderDistrictChart(districts) {
             dataLabels: {
               enabled: true,
               formatter: function () {
-                return formatNumber(Math.round(this.y));
+                return addSpaceSeparator(this.y);
               },
               align: function () {
                 return this.y >= 0 ? "right" : "left";

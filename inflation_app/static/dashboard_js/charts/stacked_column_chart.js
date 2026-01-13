@@ -53,7 +53,7 @@ function renderStackedColumnChart(columnData) {
           }
         }
       },
-      title: { text: "" },
+      title: { text: "" }, // chart title stays empty
       subtitle: { text: subtitleText, style: { color: textColor } },
       credits: { enabled: false },
       exporting: { enabled: false },
@@ -76,9 +76,9 @@ function renderStackedColumnChart(columnData) {
           formatter: function () {
             const idx = this.x;
             if (periodTotals && periodTotals[idx] !== undefined) {
-              return Highcharts.numberFormat(periodTotals[idx], 2) + "%";
+              return periodTotals[idx] + "%"; // raw passthrough
             }
-            return this.total + "%";
+            return this.total + "%"; // raw passthrough
           },
           style: { fontWeight: "bold", color: textColor }
         }
@@ -90,16 +90,18 @@ function renderStackedColumnChart(columnData) {
           const idx = this.points[0].point.index;
           const totalText =
             periodTotals && periodTotals[idx] !== undefined
-              ? `<br/><b>${gettext("Total")}:</b> ${Highcharts.numberFormat(periodTotals[idx], 2)}%`
+              ? `<br/><b>${gettext("Total")}:</b> ${periodTotals[idx]}`
               : "";
 
+          // ✅ Add tooltip title
+          const header = `<b style="color:#000000;display:block;margin-bottom:4px;">Хисоб фоиз бандда</b>`;
+
           return (
+            header +
             this.points
-              .slice()
-              .sort((a, b) => b.y - a.y)
               .map(p => `
                 <span style="color:${p.series.color}">\u25CF</span>
-                <b>${p.series.name}</b>: ${Highcharts.numberFormat(p.y, 2, '.', ',')}%
+                <b>${p.series.name}</b>: ${p.y}
               `)
               .join("<br/>") + totalText
           );
