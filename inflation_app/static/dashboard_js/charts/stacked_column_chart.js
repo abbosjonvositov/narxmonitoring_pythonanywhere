@@ -26,22 +26,6 @@ function renderStackedColumnChart(columnData) {
     // ✅ Use centralized palette
     const chartColors = getChartPalette(seriesData.length);
 
-    // 🔎 Precompute totals for each category
-    const computedTotals = categories.map((_, idx) => {
-      return periodTotals && periodTotals[idx] !== undefined
-        ? periodTotals[idx]
-        : seriesData.reduce((sum, s) => sum + (s.data[idx] || 0), 0);
-    });
-
-    // Find top 5 highest and lowest indexes
-    const sorted = computedTotals
-      .map((val, idx) => ({ val, idx }))
-      .sort((a, b) => a.val - b.val);
-
-    const lowest5 = sorted.slice(0, 5).map(o => o.idx);
-    const highest5 = sorted.slice(-5).map(o => o.idx);
-    const showIndexes = new Set([...lowest5, ...highest5]);
-
     const chart = Highcharts.chart(containerId, {
       colors: chartColors,
       chart: {
@@ -69,7 +53,7 @@ function renderStackedColumnChart(columnData) {
           }
         }
       },
-      title: { text: "" },
+      title: { text: "" }, // chart title stays empty
       subtitle: { text: subtitleText, style: { color: textColor } },
       credits: { enabled: false },
       exporting: { enabled: false },
@@ -80,6 +64,7 @@ function renderStackedColumnChart(columnData) {
         gridLineWidth: 0
       },
       yAxis: {
+        min: 0,
         title: { text: gettext("Foizda (%)"), style: { color: textColor } },
         labels: {
           style: { color: textColor },
@@ -88,18 +73,14 @@ function renderStackedColumnChart(columnData) {
         gridLineWidth: 0,
         stackLabels: {
           enabled: true,
-          allowOverlap: true,
           formatter: function () {
             const idx = this.x;
-            const total = periodTotals && periodTotals[idx] !== undefined
-              ? periodTotals[idx]
-              : this.total;
-
-            // ✅ Only show if index is in top 5 highest or lowest
-            if (!showIndexes.has(idx)) return "";
-            return total + "%";
+            if (periodTotals && periodTotals[idx] !== undefined) {
+              return periodTotals[idx] + "%"; // raw passthrough
+            }
+            return this.total + "%"; // raw passthrough
           },
-          style: { fontWeight: "bold", fontSize: "10px", color: textColor }
+          style: { fontWeight: "bold", color: textColor }
         }
       },
       tooltip: {
@@ -109,9 +90,10 @@ function renderStackedColumnChart(columnData) {
           const idx = this.points[0].point.index;
           const totalText =
             periodTotals && periodTotals[idx] !== undefined
-              ? `<br/><b>${gettext("Total")}:</b> ${periodTotals[idx]}%`
-              : `<br/><b>${gettext("Total")}:</b> ${this.points.reduce((sum, p) => sum + p.y, 0)}%`;
+              ? `<br/><b>${gettext("Total")}:</b> ${periodTotals[idx]}`
+              : "";
 
+          // ✅ Add tooltip title
           const header = `<b style="color:#000000;display:block;margin-bottom:4px;">Хисоб фоиз бандда</b>`;
 
           return (

@@ -18,15 +18,20 @@ function getHeatmapColor(value, min, max) {
   }
 }
 
+//function formatWithSpace(num) {
+//  if (typeof num !== "number") return num;
+//  return num
+//    .toLocaleString("fr-FR", {
+//      minimumFractionDigits: 2,
+//      maximumFractionDigits: 2
+//    })
+//    .replace(",", "."); // keep dot as decimal separator
+//}
 function formatWithSpace(num) {
-  if (typeof num !== "number") return num;
-  return num
-    .toLocaleString("fr-FR", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    })
-    .replace(",", "."); // keep dot as decimal separator
+  let str = String(num);
+  return str.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 }
+
 
 // --- Fetch products from API ---
 async function fetchProducts() {
@@ -137,7 +142,7 @@ function showExtraInfo(product) {
 
     let rowsHTML = product.regions.map(region => `
       <tr>
-        <td style="width:110px;" title="${region.name}">${region.name}</td>
+        <td style="width:200px;" title="${region.name}">${region.name}</td>
         ${region.performance.map(p => {
           const bgColor = getRegionHeatmapColor(p.change.pct, minChange, maxChange);
           return `<td style="background-color:${bgColor}">${parseFloat(p.change.pct)}%</td>`;
@@ -149,7 +154,7 @@ function showExtraInfo(product) {
       <p>${product.name}</p>
       <table class="right-bar-region-table">
         <tr>
-          <th style="width:110px;">${gettext("Hududlar")}</th>
+          <th style="width:200px;">${gettext("Hududlar")}</th>
           <th>${gettext("1W")}</th>
           <th>${gettext("1M")}</th>
           <th>${gettext("3M")}</th>

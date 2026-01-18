@@ -2,6 +2,7 @@
 {% load static i18n %}
 
 {% block main %}
+<!--filter chips-->
 <style>
     .filter-chip {
   display: inline-flex;
@@ -32,6 +33,8 @@
 }
 
 </style>
+<!--filter chips-->
+
 <!--footer-->
 <style>
     .footerInfo {
@@ -43,6 +46,7 @@
 }
 
 </style>
+<!--trading view carousel-->
 <style>
     .ticker-wrap {
         overflow: hidden;
@@ -135,6 +139,8 @@
         color: #999999; /* softer neutral gray */
     }
 </style>
+<!--trading view carousel-->
+
 <!-- TradingView-style Ticker -->
 <div class="ticker-wrap bg-dark text-white">
     <div id="ticker-track" class="ticker-track"></div>
@@ -142,73 +148,6 @@
 
 <!-- ✅ Right Sidebar (Offcanvas Navbar) -->
 <!-- ✅ Sidebar Base Styling -->
-<style>
-    /* Sidebar base styling */
-    #rightSidebar {
-        background-color: #1f1f1f !important; /* force dark background */
-        color: #e0e0e0 !important;            /* force light text */
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        overflow-y: auto;
-        border-left: 1px solid #333;
-    }
-
-    /* Collapsed state */
-    #rightSidebar.sidebar-collapsed {
-        display: none;
-    }
-
-    /* Expanded state */
-    #rightSidebar.sidebar-expanded {
-        display: block;
-    }
-
-    /* Sidebar header strip */
-    #rightSidebar .sidebar-header {
-        background-color: #1f1f1f !important; /* ticker track style */
-        border-bottom: 1px solid #333;
-        color: #f0f0f0 !important;
-        padding: 5px 8px; /* reduced */
-        font-weight: 600;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    /* Sidebar body */
-    #rightSidebar .sidebar-body {
-        padding: 5px; /* reduced */
-        background-color: #121212 !important; /* keep body dark */
-    }
-
-    /* Sidebar footer */
-    #rightSidebar .sidebar-footer {
-        background-color: #1f1f1f !important;
-        border-top: 1px solid #333;
-        padding: 5px 8px; /* reduced */
-        font-size: 0.85rem;
-        color: #bbbbbb !important;
-        text-align: center;
-    }
-
-    /* Toggle button */
-    .sidebar-toggle {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        z-index: 1100;
-        background-color: #1f1f1f;
-        color: #e0e0e0;
-        border: 1px solid #333;
-        border-radius: 6px;
-        padding: 5px 8px; /* reduced */
-        transition: background-color 0.2s, transform 0.2s;
-    }
-
-    .sidebar-toggle:hover {
-        background-color: #333;
-        transform: translateY(-2px);
-    }
-</style>
 
 <!-- ✅ Product List / Ticker -->
 <style>
@@ -483,11 +422,134 @@
 
 </style>
 
+<style>
+    /* ============================
+       RIGHT SIDEBAR – MATCH CARD GRID HEIGHT
+       Card grid: 2 rows × 38vh = 76vh
+       + small extra for headers/margins
+       ============================ */
+
+    #rightSidebar {
+        background-color: #1f1f1f !important;
+        color: #e0e0e0 !important;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        border-left: 1px solid #333;
+
+        /* Match the visible card grid height */
+        min-height: calc(76vh + 3rem);   /* 2 × 38vh + space for headers/margins */
+        height: auto !important;
+        max-height: none !important;
+
+        position: sticky !important;
+        top: 0 !important;
+        align-self: flex-start !important;
+
+        overflow: visible !important;
+    }
+
+    /* Collapsed state */
+    #rightSidebar.sidebar-collapsed {
+        display: none;
+    }
+
+    /* Expanded state */
+    #rightSidebar.sidebar-expanded {
+        display: block;
+    }
+
+    /* Sidebar header */
+    #rightSidebar .sidebar-header {
+        background-color: #1f1f1f !important;
+        border-bottom: 1px solid #333;
+        color: #f0f0f0 !important;
+        padding: 5px 8px;
+        font-weight: 600;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    /* Sidebar body */
+    #rightSidebar .sidebar-body {
+        padding: 5px;
+        background-color: #121212 !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    /* Sidebar footer */
+    #rightSidebar .sidebar-footer {
+        background-color: #1f1f1f !important;
+        border-top: 1px solid #333;
+        padding: 5px 8px;
+        font-size: 0.85rem;
+        color: #bbbbbb !important;
+        text-align: center;
+    }
+
+    /* Toggle button */
+    .sidebar-toggle {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1100;
+        background-color: #1f1f1f;
+        color: #e0e0e0;
+        border: 1px solid #333;
+        border-radius: 6px;
+        padding: 5px 8px;
+        transition: background-color 0.2s, transform 0.2s;
+    }
+
+    .sidebar-toggle:hover {
+        background-color: #333;
+        transform: translateY(-2px);
+    }
+
+    /* ============================
+       OPTIONAL: SCROLL ONLY TABLES
+       ============================ */
+    #rightSidebar .sidebar-body {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .right-bar-region-table-wrapper,
+    .right-bar-performance-table-wrapper {
+        flex-grow: 1;        /* table wrapper grows to fill remaining height */
+        overflow-y: auto;    /* scroll if needed */
+    }
+
+</style>
+<style>
+    html, body {
+      height: 100%; /* ensure full viewport height */
+    }
+    .main-content, .container-fluid, .row.h-100 {
+      height: 100%;
+    }
+    .card-full {
+      height: 38vh; /* each card fills half the screen height */
+    }
+    .row {
+  margin-left: -0.25rem;   /* reduce default gutter */
+  margin-right: -0.25rem;
+}
+.row > [class*="col-"] {
+  padding-left: 0.2rem;
+  padding-right: 0.2rem;
+}
+
+</style>
 
 <div class="container-fluid">
     <div class="row">
         <!-- Main Content -->
-        <div id="mainContentWrapper" class="col-md-8 col-lg-9 transition-wrapper">
+        <div id="mainContentWrapper" class="col-md-8 col-lg-9 transition-wrapper flex-grow-1 ">
             <main role="main" class="main-content">
                 <div class="container-fluid">
                     <!-- Date Picker -->
@@ -504,88 +566,7 @@
 
                     <!-- Card Grid -->
                     <div class="row g-1">
-                        <!-- Card 1 -->
-                        <div class="col-12 col-md-6 col-lg-4 mb-2 d-flex">
-                            <div class="card flex-fill card-full shadow-sm">
-                                <div class="card-header d-flex justify-content-between align-items-center">
-                                    <h6 class="mb-0">{% trans "Viloyatlar va tumanlar kesimida narxlar darajasi" %}</h6>
-                                    <div class="btn-group btn-group-sm">
-                                        <button class="btn btn-outline-secondary" title="{% trans 'Refresh' %}">
-                                            <i class="fas fa-sync-alt"></i>
-                                        </button>
-                                        <button class="btn btn-outline-secondary" title="{% trans 'Settings' %}">
-                                            <i class="fas fa-cog"></i>
-                                        </button>
-                                        <button id="fullscreenBtn" class="btn btn-outline-secondary"
-                                                title="{% trans 'Fullscreen' %}">
-                                            <i class="fas fa-expand"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="card-body">
-                                    <div id="map_chart" class="chart-container"></div>
-                                </div>
-                                <div class="card-footer text-muted small">
-                                    <span class="footerInfo">{% trans "Footer info" %}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Card 2 -->
-                        <div class="col-12 col-md-6 col-lg-4 mb-2 d-flex">
-                            <div class="card flex-fill card-full shadow-sm">
-                                <div class="card-header d-flex justify-content-between align-items-center">
-                                    <h6 class="mb-0">{% trans "Hududlar kesimida narxlar dinamikasi" %}</h6>
-                                    <div class="btn-group btn-group-sm">
-                                        <button class="btn btn-outline-secondary" title="{% trans 'Refresh' %}">
-                                            <i class="fas fa-sync-alt"></i>
-                                        </button>
-                                        <button class="btn btn-outline-secondary" title="{% trans 'Settings' %}">
-                                            <i class="fas fa-cog"></i>
-                                        </button>
-                                        <button id="fullscreenBtnRegion" class="btn btn-outline-secondary"
-                                                title="{% trans 'Fullscreen' %}">
-                                            <i class="fas fa-expand"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="card-body">
-                                    <div id="region_chart" class="chart-container"></div>
-                                </div>
-                                <div class="card-footer text-muted small">
-                                    <span class="footerInfo">{% trans "Footer info" %}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Card 3 -->
-                        <div class="col-12 col-md-6 col-lg-4 mb-2 d-flex">
-                            <div class="card flex-fill card-full shadow-sm">
-                                <div class="card-header d-flex justify-content-between align-items-center">
-                                    <h6 class="mb-0">{% trans "Hududlarning umumiy narx oʻzgarishiga hissasi" %}</h6>
-                                    <div class="btn-group btn-group-sm">
-                                        <button class="btn btn-outline-secondary" title="{% trans 'Refresh' %}">
-                                            <i class="fas fa-sync-alt"></i>
-                                        </button>
-                                        <button class="btn btn-outline-secondary" title="{% trans 'Settings' %}">
-                                            <i class="fas fa-cog"></i>
-                                        </button>
-                                        <button id="fullscreenBtnStackedColumn" class="btn btn-outline-secondary"
-                                                title="{% trans 'Fullscreen' %}">
-                                            <i class="fas fa-expand"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="card-body">
-                                    <div id="stacked_column_chart" class="chart-container"></div>
-                                </div>
-                                <div class="card-footer text-muted small">
-                                    <span class="footerInfo">{% trans "Footer info" %}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Card 4 -->
+                        <!-- Card 4 PRODUCT CHART-->
                         <div class="col-12 col-md-6 col-lg-4 mb-2 d-flex">
                             <div class="card flex-fill card-full shadow-sm">
                                 <div class="card-header d-flex justify-content-between align-items-center">
@@ -612,7 +593,7 @@
                             </div>
                         </div>
 
-                        <!-- Card 5 -->
+                        <!-- Card 5 DISTRICT CHART-->
                         <div class="col-12 col-md-6 col-lg-4 mb-2 d-flex">
                             <div class="card flex-fill card-full shadow-sm">
                                 <div class="card-header d-flex justify-content-between align-items-center">
@@ -639,7 +620,34 @@
                             </div>
                         </div>
 
-                        <!-- Card 6 -->
+                        <!-- Card 1 MAP CHART -->
+                        <div class="col-12 col-md-6 col-lg-4 mb-2 d-flex">
+                            <div class="card flex-fill card-full shadow-sm">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0">{% trans "Viloyatlar va tumanlar kesimida narxlar darajasi" %}</h6>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-secondary" title="{% trans 'Refresh' %}">
+                                            <i class="fas fa-sync-alt"></i>
+                                        </button>
+                                        <button class="btn btn-outline-secondary" title="{% trans 'Settings' %}">
+                                            <i class="fas fa-cog"></i>
+                                        </button>
+                                        <button id="fullscreenBtn" class="btn btn-outline-secondary"
+                                                title="{% trans 'Fullscreen' %}">
+                                            <i class="fas fa-expand"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div id="map_chart" class="chart-container"></div>
+                                </div>
+                                <div class="card-footer text-muted small">
+                                    <span class="footerInfo">{% trans "Footer info" %}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 6 LINEGRAPH CHART-->
                         <div class="col-12 col-md-6 col-lg-4 mb-2 d-flex">
                             <div class="card flex-fill card-full shadow-sm">
                                 <div class="card-header d-flex justify-content-between align-items-center">
@@ -665,13 +673,70 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Card 2 REGION CHART-->
+                        <div class="col-12 col-md-6 col-lg-4 mb-2 d-flex">
+                            <div class="card flex-fill card-full shadow-sm">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0">{% trans "Hududlar kesimida narxlar dinamikasi" %}</h6>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-secondary" title="{% trans 'Refresh' %}">
+                                            <i class="fas fa-sync-alt"></i>
+                                        </button>
+                                        <button class="btn btn-outline-secondary" title="{% trans 'Settings' %}">
+                                            <i class="fas fa-cog"></i>
+                                        </button>
+                                        <button id="fullscreenBtnRegion" class="btn btn-outline-secondary"
+                                                title="{% trans 'Fullscreen' %}">
+                                            <i class="fas fa-expand"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div id="region_chart" class="chart-container"></div>
+                                </div>
+                                <div class="card-footer text-muted small">
+                                    <span class="footerInfo">{% trans "Footer info" %}</span>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <!-- Card 3 STACKED COLUMN CHART -->
+                        <div class="col-12 col-md-6 col-lg-4 mb-2 d-flex">
+                            <div class="card flex-fill card-full shadow-sm">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0">{% trans "Hududlarning umumiy narx oʻzgarishiga hissasi" %}</h6>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-secondary" title="{% trans 'Refresh' %}">
+                                            <i class="fas fa-sync-alt"></i>
+                                        </button>
+                                        <button class="btn btn-outline-secondary" title="{% trans 'Settings' %}">
+                                            <i class="fas fa-cog"></i>
+                                        </button>
+                                        <button id="fullscreenBtnStackedColumn" class="btn btn-outline-secondary"
+                                                title="{% trans 'Fullscreen' %}">
+                                            <i class="fas fa-expand"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div id="stacked_column_chart" class="chart-container"></div>
+                                </div>
+                                <div class="card-footer text-muted small">
+                                    <span class="footerInfo">{% trans "Footer info" %}</span>
+                                </div>
+                            </div>
+                        </div>
+
+
                     </div>
                 </div>
             </main>
         </div>
 
         <!-- Right Sidebar -->
-        <div id="rightSidebar" class="col-12 col-md-4 col-lg-3 border-left sidebar-expanded">
+        <div id="rightSidebar" class="col-md-4 col-lg-3 border-left sidebar-expanded">
             <div class="sidebar-header d-flex justify-content-between align-items-center">
                 <p class="mb-0">{% trans "Infografika" %}</p>
                 <div class="ml-auto">
@@ -683,16 +748,25 @@
                     </button>
                 </div>
             </div>
+
             <div class="sidebar-body">
-                <div id="right-sidebar-product">
-                    <div class="picker-list"></div>
-                    <div class="picker-highlight"></div>
+                <div class="right-bar-region-table-wrapper">
+                    <div id="right-sidebar-product">
+                        <div class="table-picker-list"></div>
+                        <div class="picker-highlight"></div>
+                    </div>
+
+                    <div id="pctChangeTable" class="right-bar-extra-info"></div>
+                    <div id="regionInsights" class="right-bar-insights"></div>
+                    <div id="regionSummary" class="right-bar-region-summary"></div>
                 </div>
-                <div id="pctChangeTable" class="right-bar-extra-info"></div>
-                <div id="regionInsights" class="right-bar-insights"></div>
-                <div id="regionSummary" class="right-bar-region-summary"></div>
             </div>
-            <div class="sidebar-footer"></div>
+
+            <div class="sidebar-footer">
+                <p>
+
+                </p>
+            </div>
         </div>
     </div>
 </div>
@@ -705,26 +779,6 @@
 
 <!-- CSS card -->
 
-<style>
-    html, body {
-      height: 100%; /* ensure full viewport height */
-    }
-    .main-content, .container-fluid, .row.h-100 {
-      height: 100%;
-    }
-    .card-full {
-      height: 50vh; /* each card fills half the screen height */
-    }
-    .row {
-  margin-left: -0.25rem;   /* reduce default gutter */
-  margin-right: -0.25rem;
-}
-.row > [class*="col-"] {
-  padding-left: 0.2rem;
-  padding-right: 0.2rem;
-}
-
-</style>
 
 <!--chart styles-->
 <!--<style>-->
@@ -962,29 +1016,21 @@
         // Track animation frame ID
         let animationId = null;
 
-        // Custom function to add space separators
-        function addSpaceSeparator(num) {
-            let str = String(num);
-            return str.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-        }
-
         function renderItem(item) {
             const up = item.nominal_change > 0;
             const down = item.nominal_change < 0;
             const arrow = up ? '▲' : down ? '▼' : '→';
 
-            // Format price with space as thousands separator (no decimals)
-            const formattedPrice = addSpaceSeparator(item.latest_price);
-
-            // Format nominal change with space separator and 2 decimals
-            const formattedNominalChange = addSpaceSeparator(item.nominal_change.toFixed(2));
+            // Format price with space as thousands separator
+            const formattedPrice = item.latest_price
+                .toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
             return `
               <div class="ticker-item" data-product-id="${item.product_id}">
                 <div class="product-name">${item.product_name}</div>
                 <div class="product-price">${formattedPrice}</div>
                 <div class="product-change ${up ? 'negative' : down ? 'positive' : 'neutral'}">
-                  ${arrow} ${formattedNominalChange}<br/>
+                  ${arrow} ${item.nominal_change.toFixed(2)}<br/>
                   (${item.percentage_change.toFixed(2)}%)
                 </div>
               </div>
