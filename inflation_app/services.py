@@ -2,8 +2,10 @@ import pandas as pd
 from django.conf import settings
 from django.db import transaction
 from django.core.cache import cache
-
 from .models import Region, District, Product, PriceObservation
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @transaction.atomic
@@ -92,29 +94,32 @@ def load_meta_data_fron_excel_file(file_path):
         raise  # enforce rollback
 
 
+def safe_delete_pattern(pattern: str):
+    try:
+        delete_func = getattr(cache, "delete_pattern", None)
+        if callable(delete_func):
+            delete_func(pattern)
+    except Exception as e:
+        logger.exception("Cache deletion failed: %s", e)
+
+
 @transaction.atomic
 def load_price_data_from_excel_file(file_path):
     """
     Load price data from Excel into PriceObservation.
-
-    - Auto-creates Region, District, Product if missing
-    - Fully atomic
-    - Optimized for large files (~30K rows)
-    - Cache invalidation happens AFTER successful commit
     """
 
     def norm(val):
         return str(val).strip().lower()
 
     try:
-        # ---------- READ EXCEL ----------
         price_df = pd.read_excel(file_path, sheet_name="prices")
         price_df = price_df.dropna(
             subset=["region_name", "district_name", "product", "date", "price"]
         )
         price_df["date"] = pd.to_datetime(price_df["date"]).dt.date
 
-        # ---------- PREFETCH EXISTING METADATA ----------
+        # Prefetch metadata
         regions_map = {
             norm(n): r
             for r in Region.objects.all()
@@ -134,11 +139,8 @@ def load_price_data_from_excel_file(file_path):
             if n
         }
 
-        new_regions = {}
-        new_districts = {}
-        new_products = {}
+        new_regions, new_districts, new_products = {}, {}, {}
 
-        # ---------- COLLECT MISSING METADATA ----------
         for _, row in price_df.iterrows():
             r_key = norm(row["region_name"])
             d_key = norm(row["district_name"])
@@ -164,17 +166,14 @@ def load_price_data_from_excel_file(file_path):
                     product_name_cyrillic="",
                 )
 
-        # ---------- BULK CREATE METADATA ----------
         if new_regions:
             Region.objects.bulk_create(new_regions.values())
-
         if new_districts:
             District.objects.bulk_create(new_districts.values())
-
         if new_products:
             Product.objects.bulk_create(new_products.values())
 
-        # ---------- RELOAD METADATA WITH PKs ----------
+        # Reload metadata
         regions_map = {
             norm(n): r
             for r in Region.objects.all()
@@ -194,7 +193,6 @@ def load_price_data_from_excel_file(file_path):
             if n
         }
 
-        # ---------- PREPARE PRICE DATA ----------
         price_data = []
         for _, row in price_df.iterrows():
             r_key = norm(row["region_name"])
@@ -216,7 +214,7 @@ def load_price_data_from_excel_file(file_path):
                 "price": float(row["price"]),
             })
 
-        # ---------- FAST UPSERT (DJANGO 5+) ----------
+        # Bulk upsert
         if hasattr(PriceObservation.objects, "bulk_upsert"):
             PriceObservation.objects.bulk_upsert(
                 price_data,
@@ -224,28 +222,21 @@ def load_price_data_from_excel_file(file_path):
                 update_fields=["price", "region_id"],
                 batch_size=1000,
             )
-
         else:
-            # ---------- UNIVERSAL FALLBACK ----------
             incoming_map = {
                 (d["district_id"], d["product_id"], d["date"]): d
                 for d in price_data
             }
-
             existing = PriceObservation.objects.filter(
                 district_id__in=[k[0] for k in incoming_map],
                 product_id__in=[k[1] for k in incoming_map],
                 date__in=[k[2] for k in incoming_map],
             )
-
             existing_map = {
                 (o.district_id, o.product_id, o.date): o
                 for o in existing
             }
-
-            to_create = []
-            to_update = []
-
+            to_create, to_update = [], []
             for key, data in incoming_map.items():
                 if key in existing_map:
                     obj = existing_map[key]
@@ -257,23 +248,14 @@ def load_price_data_from_excel_file(file_path):
 
             if to_create:
                 PriceObservation.objects.bulk_create(to_create, batch_size=1000)
-
             if to_update:
-                PriceObservation.objects.bulk_update(
-                    to_update,
-                    ["price", "region"],
-                    batch_size=1000,
-                )
+                PriceObservation.objects.bulk_update(to_update, ["price", "region_id"], batch_size=1000)
 
-        # ---------- CACHE INVALIDATION (AFTER COMMIT) ----------
-        transaction.on_commit(
-            lambda: cache.delete_pattern("dashboard:*")
-        )
+        # ---------- SAFE CACHE INVALIDATION ----------
+        transaction.on_commit(lambda: safe_delete_pattern("dashboard:*"))
 
         return len(price_data)
 
-    except Exception:
-        if settings.DEBUG:
-            import pdb
-            pdb.set_trace()
+    except Exception as e:
+        logger.exception("Error loading price data from Excel: %s", file_path)
         raise
