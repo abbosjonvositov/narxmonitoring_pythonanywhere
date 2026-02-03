@@ -1,9 +1,9 @@
 from datetime import timedelta
 from django.core.cache import cache
-from django.db.models import Avg, Max
+from django.db.models import Avg, Max, Sum, F
 from django.db.models.functions import TruncWeek
 
-from .models import Product, Region, District, PriceObservation
+from .models import Product, Region, District, PriceObservation, CPIData
 from .utils import format_price, format_price_change
 
 # CACHE_TIMEOUT = 300  # 5 minutes
@@ -1016,16 +1016,8 @@ def linegraph_chart_handler(qs, params):
 
 def stacked_column_handler(qs, params):
     """
-    Optimized handler for Highcharts stacked column chart showing regional price change contributions.
-    - Uses up to the provided end_date (params["date"]) or latest available date.
-    - Only returns non-zero contribution periods.
-    - Filters by product_id (default: "Olma").
-    - Includes separate totals per period.
-    - Language-aware region names (uz, cy, ru, en).
-    - Uses shared queryset (already filtered in dashboard_handler).
-    - Formatting rules:
-        * Contributions & period totals: 1 decimal
-        * Prices are already aggregated internally
+    CPI Stacked Column Handler - Uses CPIData.price_change * weight per product per month.
+    Each stack shows all products' contributions for that month.
     """
 
     # -------------------- Language awareness --------------------
@@ -1036,142 +1028,118 @@ def stacked_column_handler(qs, params):
         "ru": "russian",
         "en": "english",
     }
-    region_name_field = f"region_name_{LANG_FIELD_MAP.get(lang, 'latin')}"
+    product_name_field = f"product_name_{LANG_FIELD_MAP.get(lang, 'latin')}"
 
-    def format_date_ddmmyyyy(date_obj):
-        if not date_obj:
-            return None
-        return date_obj.strftime("%d.%m.%Y")
+    def format_month_year(year, month):
+        return f"{year}-{month:02d}"
 
     def format_1dp(value):
-        """Round value to 1 decimal"""
-        return round(float(value), 1)
+        return round(float(value or 0), 1)
+    def format_1dp_detail(value):
+        return round(float(value or 0), 4)
 
-    # -------------------- PRODUCT HANDLING --------------------
-    product_id = params.get("product_id")
-    if not product_id:
+    # -------------------- PRODUCTS --------------------
+    products = Product.objects.filter(
+        cpi_data__isnull=False
+    ).distinct().order_by("product_name_latin") # Limit to top 10 products
+
+    if not products.exists():
+        return {
+            "chart_type": "stacked_column",
+            "data": [],
+            "error": "No CPI products found"
+        }
+
+    # -------------------- PERIOD WINDOW --------------------
+    all_periods = list(
+        CPIData.objects.filter(product__in=products)
+        .values_list("year", "month")
+        .distinct()
+        .order_by("year", "month")
+    )
+
+    if not all_periods:
+        return {
+            "chart_type": "stacked_column",
+            "data": [],
+            "error": "No CPI periods found"
+        }
+
+    # Filter by end_period params
+    end_year = params.get("year")
+    end_month = params.get("month")
+    if end_year and end_month:
         try:
-            product = Product.objects.get(product_name_latin="Olma")
-            product_id = product.product_id
-        except Product.DoesNotExist:
-            return {
-                "chart_type": "stacked_column",
-                "data": [],
-                "error": "Default product 'Olma' not found"
-            }
+            end_year, end_month = int(end_year), int(end_month)
+            all_periods = [p for p in all_periods if p <= (end_year, end_month)]
+        except (ValueError, TypeError):
+            pass
 
-    product_qs = qs.filter(product__product_id=product_id)
-    if not product_qs.exists():
-        return {
-            "chart_type": "stacked_column",
-            "data": [],
-            "error": f"No price data found for product ID {product_id}"
-        }
+    # -------------------- GET EFFICIENT DATA - FIXED --------------------
+    # Create proper dictionary lookup: {(year, month, product_id): contribution}
+    contrib_lookup = {}
+    cpi_contributions = CPIData.objects.filter(
+        product__in=products,
+        year__in=[p[0] for p in all_periods],
+        month__in=[p[1] for p in all_periods]
+    ).values("year", "month", "product__product_id").annotate(
+        contribution=Sum(F("weight") * F("price_change"))
+    )
 
-    # -------------------- REGIONS --------------------
-    regions = Region.objects.filter(
-        region_id__in=product_qs.values_list("region__region_id", flat=True).distinct()
-    ).order_by("region_name_latin")
+    for item in cpi_contributions:
+        key = (item["year"], item["month"], item["product__product_id"])
+        contrib_lookup[key] = item["contribution"] or 0
 
-    # -------------------- DATE WINDOW --------------------
-    all_dates = list(product_qs.dates("date", "day").order_by("date"))
-    if len(all_dates) < 2:
-        return {
-            "chart_type": "stacked_column",
-            "data": [],
-            "error": "Need at least 2 unique dates to calculate price changes"
-        }
+    # -------------------- SERIES SETUP --------------------
+    series = [{"name": "", "data": []} for _ in products]
+    product_names = []
 
-    # Determine end_date: param or latest
-    provided_date = params.get("date")
-    if provided_date:
-        from datetime import datetime
-        try:
-            end_date = datetime.strptime(str(provided_date), "%Y-%m-%d").date()
-        except Exception:
-            end_date = all_dates[-1]
-    else:
-        end_date = all_dates[-1]
-
-    # Restrict dates up to end_date
-    all_dates = [d for d in all_dates if d <= end_date]
-
-    if len(all_dates) < 2:
-        return {
-            "chart_type": "stacked_column",
-            "data": [],
-            "error": "Not enough periods up to selected date"
-        }
-
-    # -------------------- SERIES INITIALIZATION --------------------
-    series = []
-    for region in regions:
-        name = getattr(region, region_name_field, None) or region.region_name_latin or f"Region {region.region_id}"
-        series.append({"name": name, "data": []})
+    for i, product in enumerate(products):
+        name = getattr(product, product_name_field,
+                       None) or product.product_name_latin or f"Product {product.product_id}"
+        series[i]["name"] = name
+        product_names.append(product.product_id)
 
     date_labels = []
     period_totals = []
-    valid_period_contributions = []
 
-    # -------------------- CONTRIBUTION CALCULATION --------------------
-    for i, current_date in enumerate(all_dates[1:], 1):
-        prev_date = all_dates[i - 1]
-
-        current_period = product_qs.filter(date=current_date).values("region__region_id").annotate(
-            avg_price=Avg("price")
-        )
-        current_prices = {item["region__region_id"]: item["avg_price"] or 0 for item in current_period}
-
-        prev_period = product_qs.filter(date=prev_date).values("region__region_id").annotate(
-            avg_price=Avg("price")
-        )
-        prev_prices = {item["region__region_id"]: item["avg_price"] or 0 for item in prev_period}
-
+    # -------------------- PROCESS PERIODS --------------------
+    for year, month in all_periods:
         period_contributions = []
         period_total = 0.0
 
-        for region in regions:
-            current_price = current_prices.get(region.region_id, 0)
-            prev_price = prev_prices.get(region.region_id, 0)
-
-            if prev_price > 0:
-                pct_change = (current_price / prev_price * 100 - 100)
-                weight = float(getattr(region, "weights", 0))
-                contribution = pct_change * weight
-                contribution = format_1dp(contribution)
-            else:
-                contribution = 0.0
-
+        for product_id in product_names:
+            key = (year, month, product_id)
+            contribution = contrib_lookup.get(key, 0.0)
+            contribution = format_1dp_detail(contribution)
             period_contributions.append(contribution)
             period_total += contribution
 
-        if period_total != 0:
-            valid_period_contributions.append(period_contributions)
-            date_labels.append(format_date_ddmmyyyy(current_date))
+        if abs(period_total) > 0.01:
+            date_labels.append(format_month_year(year, month))
             period_totals.append(format_1dp(period_total))
 
-    # -------------------- POPULATE SERIES --------------------
-    for j, region_series in enumerate(series):
-        region_series["data"] = [contributions[j] for contributions in valid_period_contributions]
+            # Update series data
+            for i, contrib in enumerate(period_contributions):
+                series[i]["data"].append(contrib)
 
     if not date_labels:
         return {
             "chart_type": "stacked_column",
             "data": [],
-            "error": "No significant price changes found"
+            "error": "No significant CPI contributions found"
         }
 
     # -------------------- RESPONSE --------------------
     return {
         "chart_type": "stacked_column",
         "data": {
-            "product_id": str(product_id),
             "categories": date_labels,
             "series": series,
             "period_totals": period_totals,
-            "total_regions": len(regions),
+            "total_products": len(products),
             "valid_periods": len(date_labels),
-            "end_date": format_date_ddmmyyyy(end_date)
+            "end_period": format_month_year(*all_periods[-1])
         }
     }
 
@@ -1253,7 +1221,7 @@ def global_metadata_handler(qs, params):
         product_qs = product_qs.filter(district__district_id=district_id)
 
     latest_date = product_qs.aggregate(latest=Max("date"))["latest"]
-    active_date = params.get("date", latest_date)
+    active_date = params.get("date") or latest_date
 
     # -------------------- DATE FORMAT --------------------
     def format_display_date(date_value):

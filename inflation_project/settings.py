@@ -88,19 +88,7 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.mysql",
-#         "NAME": "narxmonitoring$default",
-#         "USER": "narxmonitoring",
-#         "PASSWORD": "inflation_database",
-#         "HOST": "narxmonitoring.mysql.pythonanywhere-services.com",
-#         "PORT": "3306",
-#         "OPTIONS": {
-#             "charset": "utf8mb4",
-#         },
-#     }
-# }
+
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 

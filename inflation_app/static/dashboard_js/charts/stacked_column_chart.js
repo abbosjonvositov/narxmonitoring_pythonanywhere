@@ -64,21 +64,24 @@ function renderStackedColumnChart(columnData) {
         gridLineWidth: 0
       },
       yAxis: {
-        min: 0,
+        // ✅ min: 0 REMOVED - now supports negative values
         title: { text: gettext("Foizda (%)"), style: { color: textColor } },
         labels: {
           style: { color: textColor },
-          formatter: function () { return this.value + "%"; }
+          formatter: function () {
+            return this.value + "%";
+          }
         },
         gridLineWidth: 0,
+        allowDecimals: false,
         stackLabels: {
           enabled: true,
           formatter: function () {
             const idx = this.x;
             if (periodTotals && periodTotals[idx] !== undefined) {
-              return periodTotals[idx] + "%"; // raw passthrough
+              return periodTotals[idx] + "%";
             }
-            return this.total + "%"; // raw passthrough
+            return this.total + "%";
           },
           style: { fontWeight: "bold", color: textColor }
         }
@@ -86,6 +89,7 @@ function renderStackedColumnChart(columnData) {
       tooltip: {
         shared: true,
         useHTML: true,
+        outside: true, // ✅ render tooltip outside chart container
         formatter: function () {
           const idx = this.points[0].point.index;
           const totalText =
@@ -93,18 +97,18 @@ function renderStackedColumnChart(columnData) {
               ? `<br/><b>${gettext("Total")}:</b> ${periodTotals[idx]}`
               : "";
 
-          // ✅ Add tooltip title
           const header = `<b style="color:#000000;display:block;margin-bottom:4px;">Хисоб фоиз бандда</b>`;
 
-          return (
-            header +
-            this.points
-              .map(p => `
-                <span style="color:${p.series.color}">\u25CF</span>
-                <b>${p.series.name}</b>: ${p.y}
-              `)
-              .join("<br/>") + totalText
-          );
+          const sortedPoints = this.points.slice().sort((a, b) => b.y - a.y);
+
+          const items = sortedPoints
+            .map(p => `
+              <span style="color:${p.series.color}">\u25CF</span>
+              <b>${p.series.name}</b>: ${p.y}%
+            `)
+            .join("<br/>");
+
+          return header + items + totalText;
         }
       },
       plotOptions: {

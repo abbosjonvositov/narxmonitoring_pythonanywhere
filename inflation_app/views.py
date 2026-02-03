@@ -136,6 +136,8 @@ def update_view(request, code):
 
             elif perm.code == "inflation_data_1":
                 rows = load_price_data_from_excel_file(file_path)
+            elif perm.code == "cpi_data":
+                rows = load_cpi_data_from_excel_file(file_path)
 
             else:
                 raise ValueError(f"No processor defined for code '{perm.code}'")

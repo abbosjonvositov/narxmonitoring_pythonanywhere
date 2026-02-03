@@ -2,7 +2,7 @@ import pandas as pd
 from django.conf import settings
 from django.db import transaction
 from django.core.cache import cache
-from .models import Region, District, Product, PriceObservation
+from .models import Region, District, Product, PriceObservation, CPIData
 import logging
 
 logger = logging.getLogger(__name__)
@@ -258,4 +258,117 @@ def load_price_data_from_excel_file(file_path):
 
     except Exception as e:
         logger.exception("Error loading price data from Excel: %s", file_path)
+        raise
+
+
+@transaction.atomic
+def load_cpi_data_from_excel_file(file_path):
+    """
+    Load CPI data from Excel into CPIData.
+    """
+
+    def norm(val):
+        return str(val).strip().lower()
+
+    try:
+        cpi_df = pd.read_excel(file_path, sheet_name="cpi")
+        cpi_df = cpi_df.dropna(
+            subset=["product", "year", "month", "weight", "price_change"]
+        )
+        cpi_df["year"] = cpi_df["year"].astype(int)
+        cpi_df["month"] = cpi_df["month"].astype(int)
+        cpi_df["weight"] = cpi_df["weight"].astype(float)
+        cpi_df["price_change"] = cpi_df["price_change"].astype(float)
+
+        # Prefetch metadata
+        products_map = {
+            norm(n): p
+            for p in Product.objects.all()
+            for n in (p.product_name_latin, p.product_name_cyrillic)
+            if n
+        }
+
+        new_products = {}
+
+        for _, row in cpi_df.iterrows():
+            p_key = norm(row["product"])
+
+            if p_key not in products_map and p_key not in new_products:
+                new_products[p_key] = Product(
+                    product_name_latin=row["product"].strip(),
+                    product_name_cyrillic="",
+                )
+
+        if new_products:
+            Product.objects.bulk_create(new_products.values())
+
+        # Reload metadata
+        products_map = {
+            norm(n): p
+            for p in Product.objects.all()
+            for n in (p.product_name_latin, p.product_name_cyrillic)
+            if n
+        }
+
+        cpi_data = []
+        for _, row in cpi_df.iterrows():
+            p_key = norm(row["product"])
+
+            try:
+                product = products_map[p_key]
+            except KeyError as e:
+                raise ValueError(f"Missing product metadata for {e}")
+
+            cpi_data.append({
+                "product_id": product.product_id,
+                "year": row["year"],
+                "month": row["month"],
+                "weight": row["weight"],
+                "price_change": row["price_change"],
+            })
+
+        # Bulk upsert
+        if hasattr(CPIData.objects, "bulk_upsert"):
+            CPIData.objects.bulk_upsert(
+                cpi_data,
+                unique_fields=["product_id", "year", "month"],
+                update_fields=["weight", "price_change"],
+                batch_size=1000,
+            )
+        else:
+            incoming_map = {
+                (d["product_id"], d["year"], d["month"]): d
+                for d in cpi_data
+            }
+            existing = CPIData.objects.filter(
+                product_id__in=[k[0] for k in incoming_map],
+                year__in=[k[1] for k in incoming_map],
+                month__in=[k[2] for k in incoming_map],
+            )
+            existing_map = {
+                (o.product_id, o.year, o.month): o
+                for o in existing
+            }
+            to_create, to_update = [], []
+            for key, data in incoming_map.items():
+                if key in existing_map:
+                    obj = existing_map[key]
+                    obj.weight = data["weight"]
+                    obj.price_change = data["price_change"]
+                    to_update.append(obj)
+                else:
+                    to_create.append(CPIData(**data))
+
+            if to_create:
+                CPIData.objects.bulk_create(to_create, batch_size=1000)
+            if to_update:
+                CPIData.objects.bulk_update(to_update, ["weight", "price_change"], batch_size=1000)
+
+        # ---------- SAFE CACHE INVALIDATION ----------
+        transaction.on_commit(lambda: safe_delete_pattern("dashboard:*"))
+
+        return len(cpi_data)
+
+    except Exception as e:
+        logger.exception("Error loading CPI data from Excel: %s", file_path)
         raise

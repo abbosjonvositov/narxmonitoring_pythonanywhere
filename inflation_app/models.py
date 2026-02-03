@@ -206,3 +206,32 @@ class PriceObservation(models.Model):
 
     def __str__(self):
         return f"{self.product} | {self.district} | {self.date} | {self.price}"
+
+
+class CPIData(models.Model):
+    id = models.AutoField(primary_key=True)
+
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="cpi_data"
+    )
+
+    year = models.IntegerField()
+    month = models.IntegerField()
+    weight = models.FloatField()
+    price_change = models.FloatField()
+
+    class Meta:
+        db_table = "cpi_data"
+        verbose_name = "CPI Data"
+        verbose_name_plural = "CPI Data"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["product", "year", "month"],
+                name="unique_cpi_data"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.product} | {self.year}-{self.month:02d} | {self.weight} | {self.price_change}"
